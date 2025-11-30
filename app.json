@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Gin Score Tracker",
+    "slug": "gin-score-tracker",
+    "scheme": "gin-score-tracker",
+    "version": "1.0.3",
+    "splash": {
+      "backgroundColor": "#000000",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.cybergoose.ginscoretracker",
+      "buildNumber": "4",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "org.cybergoose.ginscoretracker",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "bd649b89-aa5d-4474-97b5-e58939f92b28"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "react-native-iap",
+        {
+          "ios": {
+            "enableStoreKit2": true
+          },
+          "android": {
+            "store": "play"
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/images/icon.png"
+  }
+}
