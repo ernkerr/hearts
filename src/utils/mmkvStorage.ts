@@ -12,15 +12,15 @@ export type Game = {
     user: number; // user's score for a round
     opponent: number; // opponent's score for a round
     date: string; // date of the round
-    bonusType?: "gin" | "bigGin" | "undercut" | null; // optional bonus type
+    bonusType?: "queenOfSpades" | "shootMoon" | null;
   }>;
   winner: "user" | "opponent" | null; // who won the game
   notes?: string;
   targetScore?: number;
-  knockValue?: number;
-  ginBonus?: number;
-  bigGinBonus?: number;
-  undercutBonus?: number;
+  // knockValue?: number;
+  // ginBonus?: number;
+  // bigGinBonus?: number;
+  // undercutBonus?: number;
 };
 
 export type Opponent = {
@@ -90,52 +90,6 @@ export function setUserName(name: string) {
  */
 export function generateId(): string {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
-// --- Bonus Values ---
-/**
- * Retrieves the Gin bonus value from MMKV storage. Defaults to 25 if not set.
- */
-export function getGinValue(): number {
-  const value = storage.getString("ginValue");
-  return value !== undefined && value !== null ? parseInt(value, 10) : 25;
-}
-
-/**
- * Sets the Gin bonus value in MMKV storage.
- */
-export function setGinValue(val: number) {
-  storage.set("ginValue", val.toString());
-}
-
-/**
- * Retrieves the Big Gin bonus value from MMKV storage. Defaults to 31 if not set.
- */
-export function getBigGinValue(): number {
-  const value = storage.getString("bigGinValue");
-  return value !== undefined && value !== null ? parseInt(value, 10) : 31;
-}
-
-/**
- * Sets the Big Gin bonus value in MMKV storage.
- */
-export function setBigGinValue(val: number) {
-  storage.set("bigGinValue", val.toString());
-}
-
-/**
- * Retrieves the Undercut bonus value from MMKV storage. Defaults to 25 if not set.
- */
-export function getUndercutValue(): number {
-  const value = storage.getString("undercutValue");
-  return value !== undefined && value !== null ? parseInt(value, 10) : 25;
-}
-
-/**
- * Sets the Undercut bonus value in MMKV storage.
- */
-export function setUndercutValue(val: number) {
-  storage.set("undercutValue", val.toString());
 }
 
 /**
