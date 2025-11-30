@@ -1,4 +1,4 @@
-// Centralized game logic utilities for Gin Score Tracker
+// Centralized game logic utilities for Hearts Score Tracker
 // This file contains reusable functions for core game operations such as winner calculation, paywall enforcement, and score tallying.
 
 import type { Game } from "./mmkvStorage";
