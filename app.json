@@ -12,7 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.cybergoose.heartsscoretracker",
-      "buildNumber": "1",
+      "buildNumber": "0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -27,11 +27,6 @@
       }
     },
     "newArchEnabled": true,
-    "extra": {
-      "eas": {
-        "projectId": "bd649b89-aa5d-4474-97b5-e58939f92b28"
-      }
-    },
     "plugins": [
       "expo-font",
       [
@@ -46,6 +41,12 @@
         }
       ]
     ],
-    "icon": "./assets/images/icon.png"
+    "icon": "./assets/images/icon.png",
+    "owner": "ernkerr",
+    "extra": {
+      "eas": {
+        "projectId": "0ebbd0c1-d9af-4a55-a820-39a496e98359"
+      }
+    }
   }
 }
