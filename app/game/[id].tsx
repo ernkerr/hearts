@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, Stack } from "expo-router";
-import { Pressable, ScrollView } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { calculateWinner, getAllPlayerTotals } from "../../src/utils/gameLogic";
 import {
   getGameById,
@@ -66,7 +66,11 @@ export default function GameDetailScreen() {
     }
 
     // Calculate winner
-    const winnerId = calculateWinner(updatedRounds, game.players, game.targetScore);
+    const winnerId = calculateWinner(
+      updatedRounds,
+      game.players,
+      game.targetScore
+    );
     const newStatus = winnerId ? "completed" : "in_progress";
 
     // Update game
@@ -113,14 +117,15 @@ export default function GameDetailScreen() {
     ? game.players.find((p) => p.id === game.winner)
     : null;
 
-  const editRound = editRoundIndex !== null ? game.rounds[editRoundIndex] : undefined;
+  const editRound =
+    editRoundIndex !== null ? game.rounds[editRoundIndex] : undefined;
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Game",
-          headerTitleStyle: { fontFamily: "SpaceMono" },
+          title: "Scoreboard",
+          headerTitleStyle: { fontFamily: "Card" },
         }}
       />
 
@@ -159,65 +164,13 @@ export default function GameDetailScreen() {
 
         <ScrollView className="flex-1">
           {/* Scoreboard Header */}
-          <Box className="bg-white border-b-2 border-black p-6">
-            <Text
-              className="text-center mb-4"
-              style={{ fontFamily: "Card", fontSize: 20 }}
-            >
-              Scoreboard
-            </Text>
-
-            <Box className="flex-row justify-around flex-wrap">
-              {game.players.map((player) => {
-                const total = playerTotals[player.id] || 0;
-                const isLeader = total === lowestScore && game.rounds.length > 0;
-
-                return (
-                  <Box key={player.id} className="items-center mb-4" style={{ width: 80 }}>
-                    <Avatar
-                      size="md"
-                      className="border-2 border-black mb-2"
-                      style={{
-                        backgroundColor: player.color,
-                        boxShadow: "2px 2px 0px #000",
-                      }}
-                    >
-                      <AvatarFallbackText style={{ fontFamily: "Card", color: "#000" }}>
-                        {player.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </AvatarFallbackText>
-                    </Avatar>
-
-                    <Text
-                      className="text-center text-sm mb-1"
-                      style={{ fontFamily: "SpaceMonoRegular" }}
-                      numberOfLines={1}
-                    >
-                      {player.name}
-                    </Text>
-
-                    <Box className="flex-row items-center">
-                      {isLeader && <Crown size={14} color="#FFD700" style={{ marginRight: 4 }} />}
-                      <Text
-                        className="font-bold text-lg"
-                        style={{ fontFamily: "Card" }}
-                      >
-                        {total}
-                      </Text>
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Box>
 
           {/* Winner Message */}
           {game.status === "completed" && winnerPlayer && (
-            <Box className="bg-green-200 border-2 border-black m-6 p-4 rounded-xl" style={{ boxShadow: "4px 4px 0px #000" }}>
+            <Box
+              className="bg-green-200 border-2 border-black m-6 p-4 rounded-xl"
+              style={{ boxShadow: "4px 4px 0px #000" }}
+            >
               <Text
                 className="text-center font-bold text-xl"
                 style={{ fontFamily: "Card" }}
@@ -235,15 +188,11 @@ export default function GameDetailScreen() {
 
           {/* Rounds List */}
           <Box className="p-6">
-            <Text
-              className="font-bold text-xl mb-4"
-              style={{ fontFamily: "Card" }}
-            >
-              Rounds ({game.rounds.length})
-            </Text>
-
             {game.rounds.length === 0 ? (
-              <Box className="bg-white border-2 border-black rounded-xl p-8" style={{ boxShadow: "4px 4px 0px #000" }}>
+              <Box
+                className="bg-white border-2 border-black rounded-xl p-8"
+                style={{ boxShadow: "4px 4px 0px #000" }}
+              >
                 <Text
                   className="text-center text-gray-500"
                   style={{ fontFamily: "SpaceMonoRegular" }}
@@ -252,51 +201,119 @@ export default function GameDetailScreen() {
                 </Text>
               </Box>
             ) : (
-              game.rounds.map((round, index) => (
-                <Box
-                  key={index}
-                  className="bg-white border-2 border-black rounded-xl p-4 mb-4"
-                  style={{ boxShadow: "4px 4px 0px #000" }}
-                >
-                  <Box className="flex-row justify-between items-center mb-3">
-                    <Text style={{ fontFamily: "Card", fontSize: 16 }}>
-                      Round {index + 1}
-                    </Text>
-                    <Pressable onPress={() => handleEditRound(index)}>
-                      <Pencil size={20} color="#000" />
-                    </Pressable>
-                  </Box>
+              <>
+                {/* Header Row */}
+                <Box className="flex-row items-center px-4 py-2 mb-2">
+                  <View style={{ width: 40 }} />
+                  {game.players.map((player) => {
+                    const total = playerTotals[player.id] || 0;
+                    const isLeader =
+                      total === lowestScore && game.rounds.length > 0;
 
-                  {/* Scores for each player */}
-                  <Box className="flex-row flex-wrap">
-                    {game.players.map((player) => (
+                    return (
                       <Box
                         key={player.id}
-                        className="flex-row items-center mr-4 mb-2"
+                        style={{ flex: 2 }}
+                        className="items-center"
                       >
-                        <Box
-                          className="w-4 h-4 rounded-full border border-black mr-1"
-                          style={{ backgroundColor: player.color }}
-                        />
-                        <Text style={{ fontFamily: "SpaceMonoRegular", fontSize: 14 }}>
-                          {player.name.split(" ")[0]}: {round.scores[player.id] || 0}
+                        <View
+                          style={{
+                            height: 24,
+                            marginBottom: 4,
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          {isLeader && <Crown size={20} color="#FFD700" />}
+                        </View>
+                        <Avatar
+                          size="lg"
+                          className="border-2 border-black mb-2"
+                          style={{
+                            backgroundColor: player.color,
+                            boxShadow: "2px 2px 0px #000",
+                          }}
+                        >
+                          <AvatarFallbackText
+                            style={{
+                              fontFamily: "Card",
+                              color: "#000",
+                              fontSize: 20,
+                            }}
+                          >
+                            {player.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </AvatarFallbackText>
+                        </Avatar>
+                        <Text
+                          className="text-center text-base mb-1 font-semibold"
+                          style={{ fontFamily: "SpaceMonoRegular" }}
+                          numberOfLines={1}
+                        >
+                          {player.name.split(" ")[0]}
+                        </Text>
+                        <Text
+                          className="font-bold text-xl"
+                          style={{ fontFamily: "Card" }}
+                        >
+                          {total}
                         </Text>
                       </Box>
-                    ))}
-                  </Box>
-
-                  {/* Bonus indicator */}
-                  {round.bonusType && (
-                    <Text
-                      className="text-sm text-gray-600 mt-2"
-                      style={{ fontFamily: "SpaceMonoRegular" }}
-                    >
-                      {round.bonusType === "queenOfSpades" && "♠️ Queen of Spades"}
-                      {round.bonusType === "shootMoon" && "🌙 Shot the Moon"}
-                    </Text>
-                  )}
+                    );
+                  })}
+                  <View style={{ width: 40 }} />
                 </Box>
-              ))
+
+                {/* Round Rows */}
+                <Text
+                  className="font-bold text-xl mb-4"
+                  style={{ fontFamily: "SpaceMonoRegular" }}
+                >
+                  Round
+                </Text>
+                {game.rounds.map((round, index) => (
+                  <Box
+                    key={index}
+                    className="flex-row items-center px-4 py-3 bg-gray-100 rounded-lg mb-2"
+                  >
+                    <View style={{ width: 40, alignItems: "center" }}>
+                      <Text
+                        className="text-gray-500"
+                        style={{
+                          fontFamily: "SpaceMonoRegular",
+                        }}
+                      >
+                        {index + 1}
+                      </Text>
+                    </View>
+                    {game.players.map((player) => (
+                      <Text
+                        key={player.id}
+                        className="text-gray-600"
+                        style={{
+                          fontFamily: "SpaceMonoRegular",
+                          flex: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        {round.scores[player.id] || 0}
+                      </Text>
+                    ))}
+                    <View style={{ width: 40, alignItems: "center" }}>
+                      <Pressable
+                        onPress={() => handleEditRound(index)}
+                        accessibilityLabel={`Edit round ${index + 1}`}
+                      >
+                        <Pencil size={18} color="gray" />
+                      </Pressable>
+                    </View>
+                  </Box>
+                ))}
+              </>
             )}
           </Box>
         </ScrollView>
