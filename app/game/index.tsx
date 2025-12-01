@@ -56,7 +56,9 @@ export default function GamesScreen() {
     const isInProgress = item.status === "in_progress";
     const statusText = isInProgress
       ? "Continue Game"
-      : `Winner: ${item.players.find((p) => p.id === item.winner)?.name || "Unknown"}`;
+      : `Winner: ${
+          item.players.find((p) => p.id === item.winner)?.name || "Unknown"
+        }`;
 
     // Format date
     const gameDate = new Date(item.date);
@@ -144,7 +146,7 @@ export default function GamesScreen() {
       <Stack.Screen
         options={{
           title: "Games",
-          headerTitleStyle: { fontFamily: "SpaceMono" },
+          headerTitleStyle: { fontFamily: "Card" },
           headerRight: () => (
             <Pressable onPress={handleSettings} style={{ marginRight: 16 }}>
               <SettingsIcon size={24} color="#000" />
@@ -175,7 +177,7 @@ export default function GamesScreen() {
         <Box className="absolute bottom-8 left-8 right-8">
           <Button
             onPress={handleStartNewGame}
-            className="bg-black border-2 border-black rounded-xl"
+            className="border-2 border-black rounded-xl"
             style={{ boxShadow: "4px 4px 0px #000" }}
           >
             <ButtonText style={{ fontFamily: "Card", fontSize: 18 }}>

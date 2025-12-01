@@ -59,8 +59,7 @@ export default function NewGameScreen() {
     const newPlayer: Player = {
       id: generateId(),
       name: "",
-      color:
-        COLOR_PICKER_PALETTE[players.length % COLOR_PICKER_PALETTE.length],
+      color: COLOR_PICKER_PALETTE[players.length % COLOR_PICKER_PALETTE.length],
       isUser: false,
     };
     setPlayers([...players, newPlayer]);
@@ -137,10 +136,11 @@ export default function NewGameScreen() {
                   >
                     <InputField
                       value={player.name}
-                      onChangeText={(text) => handleUpdatePlayerName(index, text)}
+                      onChangeText={(text) =>
+                        handleUpdatePlayerName(index, text)
+                      }
                       placeholder={index === 0 ? "You" : `Player ${index + 1}`}
                       style={{ fontFamily: "SpaceMonoRegular" }}
-                      editable={index === 0 ? false : true}
                     />
                   </Input>
                 </Box>
@@ -166,7 +166,7 @@ export default function NewGameScreen() {
           {players.length < 5 && (
             <Button
               onPress={handleAddPlayer}
-              className="bg-blue-500 border-2 border-black rounded-xl mb-6"
+              className=" border-2 border-black rounded-xl mb-6"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText style={{ fontFamily: "Card", fontSize: 16 }}>
@@ -175,7 +175,10 @@ export default function NewGameScreen() {
             </Button>
           )}
 
-          <Box className="bg-white rounded-2xl border-2 border-black p-4 mb-6" style={{ boxShadow: "4px 4px 0px #000" }}>
+          <Box
+            className="bg-white rounded-2xl border-2 border-black p-4 mb-6"
+            style={{ boxShadow: "4px 4px 0px #000" }}
+          >
             <Text
               className="mb-2 font-bold text-lg"
               style={{ fontFamily: "Card" }}
@@ -206,7 +209,7 @@ export default function NewGameScreen() {
           <Box className="flex-row gap-4">
             <Button
               onPress={() => router.back()}
-              className="flex-1 bg-gray-300 border-2 border-black rounded-xl"
+              className="flex-1 bg-white border-2 border-black rounded-xl"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText
@@ -217,7 +220,7 @@ export default function NewGameScreen() {
             </Button>
             <Button
               onPress={handleCreateGame}
-              className="flex-1 bg-black border-2 border-black rounded-xl"
+              className="flex-1  border-2 border-black rounded-xl"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText style={{ fontFamily: "Card", fontSize: 16 }}>
