@@ -12,8 +12,8 @@ import { Button, ButtonText } from "./ui/button";
 import { Input, InputField } from "./ui/input";
 import { Box } from "./ui/box";
 import { Text } from "./ui/text";
+import { Moon } from "lucide-react-native";
 import type { Player } from "../utils/mmkvStorage";
-import { applyShootMoonBonus } from "../utils/gameLogic";
 
 interface MultiPlayerScoreModalProps {
   visible: boolean;
@@ -44,6 +44,8 @@ export function MultiPlayerScoreModal({
   const [shootMoonPlayerId, setShootMoonPlayerId] = useState<string | null>(
     null
   );
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [originalScores, setOriginalScores] = useState<{ [playerId: string]: string }>({});
 
   // Initialize scores when modal opens
   useEffect(() => {
@@ -67,6 +69,29 @@ export function MultiPlayerScoreModal({
     setScores({ ...scores, [playerId]: value });
   }
 
+  function handleMoonToggle(playerId: string) {
+    if (shootMoonPlayerId === playerId) {
+      // Unclicking - restore original scores
+      setShootMoonPlayerId(null);
+      setScores(originalScores);
+    } else {
+      // Clicking - save current scores and apply moon bonus
+      setOriginalScores({ ...scores });
+      setShootMoonPlayerId(playerId);
+
+      // Update scores: shooter gets 0, others get 26
+      const moonScores: { [playerId: string]: string } = {};
+      players.forEach((p) => {
+        if (p.id === playerId) {
+          moonScores[p.id] = "0";
+        } else {
+          moonScores[p.id] = "26";
+        }
+      });
+      setScores(moonScores);
+    }
+  }
+
   function handleSave() {
     // Validate all scores are entered
     const allScoresValid = players.every((p) => {
@@ -79,33 +104,28 @@ export function MultiPlayerScoreModal({
       return;
     }
 
-    // Convert scores to numbers
-    let finalScores: { [playerId: string]: number } = {};
+    // Convert scores to numbers (they're already updated if moon was clicked)
+    const finalScores: { [playerId: string]: number } = {};
     players.forEach((p) => {
       finalScores[p.id] = parseInt(scores[p.id], 10);
     });
 
-    // Apply Shoot the Moon if selected
+    // Pass shoot moon info if it was used
     if (shootMoonPlayerId) {
-      finalScores = applyShootMoonBonus(finalScores, shootMoonPlayerId);
       onSave(finalScores, "shootMoon", shootMoonPlayerId);
-      return;
+    } else {
+      onSave(finalScores, null);
     }
-
-    // No special scoring
-    onSave(finalScores, null);
   }
 
   return (
     <Modal isOpen={visible} onClose={onClose}>
       <ModalBackdrop className="bg-black/50" />
-      <ModalContent
-        className=" p-4 w-[95%] "
-        style={{ maxHeight: "95%", minHeight: 800 }}
-      >
-        <ModalHeader className="items-center justify-center">
+      <ModalContent className="w-[90%] p-6">
+        {/* Header */}
+        <ModalHeader className="pb-4">
           <Text
-            className="text-xl font-semibold p-2"
+            className="text-2xl font-semibold text-center"
             style={{ fontFamily: "Card" }}
           >
             {editRoundIndex !== null && editRoundIndex !== undefined
@@ -114,169 +134,138 @@ export function MultiPlayerScoreModal({
           </Text>
         </ModalHeader>
 
-        <ModalBody className="flex-1" style={{ minHeight: 800 }}>
-          <ScrollView className="flex-1">
-            <Box className="px-2 pb-2">
-              {/* Player Scores */}
-              <Box
-                className="bg-white rounded-2xl border-2 border-black p-6 mb-6"
-                style={{ boxShadow: "4px 4px 0px #000" }}
+        {/* Body */}
+        <ModalBody scrollEnabled={false}>
+          <Box
+            className="bg-white rounded-2xl border-2 border-black p-6 mb-1 mr-1"
+            style={{ boxShadow: "4px 4px 0px #000" }}
+          >
+            <Text className="mb-4" style={{ fontFamily: "Card", fontSize: 20 }}>
+              Enter Scores
+            </Text>
+
+            {players.map((player) => (
+              <Pressable
+                key={player.id}
+                onPress={() =>
+                  setSelectedPlayerId(
+                    selectedPlayerId === player.id ? null : player.id
+                  )
+                }
+                className="flex-row items-center p-4 mb-3 border-2 border-black rounded-xl"
+                style={{
+                  backgroundColor:
+                    selectedPlayerId === player.id ? "#dbeafe" : "#fff",
+                  boxShadow:
+                    selectedPlayerId === player.id ? "3px 3px 0px #000" : "none",
+                }}
               >
-                {players.map((player, index) => (
-                  <Box
-                    key={player.id}
-                    className="flex-row items-center"
+                <Box
+                  className="w-10 h-10 rounded-full border-2 border-black justify-center items-center mr-3"
+                  style={{
+                    backgroundColor:
+                      selectedPlayerId === player.id ? player.color : "#fff",
+                    boxShadow: "2px 2px 0px #000",
+                  }}
+                >
+                  <Text
                     style={{
-                      marginBottom: index === players.length - 1 ? 0 : 20,
+                      fontFamily: "Card",
+                      fontSize: 14,
+                      color: "#000",
                     }}
                   >
-                    <Box className="items-center mr-4">
-                      <Box
-                        className="w-14 h-14 rounded-full border-2 border-black justify-center items-center mb-2"
-                        style={{
-                          backgroundColor: player.color,
-                          boxShadow: "3px 3px 0px #000",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "Card",
-                            fontSize: 18,
-                            color: "#000",
-                          }}
-                        >
-                          {player.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </Text>
-                      </Box>
-                      <Text
+                    {player.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </Text>
+                </Box>
+
+                <Text
+                  className="flex-1"
+                  style={{ fontFamily: "SpaceMonoRegular", fontSize: 16 }}
+                >
+                  {player.name}
+                </Text>
+
+                {selectedPlayerId === player.id ? (
+                  <Box className="flex-row items-center gap-2">
+                    <Input
+                      className="border-2 border-black rounded-xl bg-gray-50"
+                      style={{
+                        boxShadow: "2px 2px 0px #000",
+                        width: 80,
+                      }}
+                    >
+                      <InputField
+                        value={scores[player.id] || ""}
+                        onChangeText={(v) => handleUpdateScore(player.id, v)}
+                        placeholder="0"
+                        keyboardType="numeric"
                         style={{
                           fontFamily: "Card",
-                          fontSize: 12,
+                          fontSize: 20,
                           textAlign: "center",
                         }}
-                      >
-                        {player.name}
-                      </Text>
-                    </Box>
-
-                    <Box className="flex-1">
-                      <Input
-                        className="border-2 border-black rounded-xl bg-gray-50"
-                        style={{ boxShadow: "2px 2px 0px #000" }}
-                      >
-                        <InputField
-                          value={scores[player.id] || ""}
-                          onChangeText={(v) => handleUpdateScore(player.id, v)}
-                          placeholder="0"
-                          keyboardType="numeric"
-                          style={{ fontFamily: "Card", fontSize: 20 }}
-                        />
-                      </Input>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-
-              {/* Shoot the Moon Section */}
-              <Box
-                className="bg-white rounded-2xl border-2 border-black p-6"
-                style={{ boxShadow: "4px 4px 0px #000" }}
-              >
-                <Text
-                  className="mb-4"
-                  style={{ fontFamily: "Card", fontSize: 20 }}
-                >
-                  🌙 Shoot the Moon?
-                </Text>
-
-                <Text
-                  className="mb-4 text-gray-600"
-                  style={{ fontFamily: "SpaceMonoRegular", fontSize: 13 }}
-                >
-                  If someone shot the moon, they get 0 points and everyone else
-                  gets 26.
-                </Text>
-
-                {/* Player Selection */}
-                {players.map((player) => (
-                  <Pressable
-                    key={player.id}
-                    onPress={() =>
-                      setShootMoonPlayerId(
-                        shootMoonPlayerId === player.id ? null : player.id
-                      )
-                    }
-                    className="flex-row items-center p-4 mb-3 border-2 border-black rounded-xl"
-                    style={{
-                      backgroundColor:
-                        shootMoonPlayerId === player.id ? "#fef3c7" : "#fff",
-                      boxShadow:
-                        shootMoonPlayerId === player.id
-                          ? "3px 3px 0px #000"
-                          : "none",
-                    }}
-                  >
-                    <Box
-                      className="w-10 h-10 rounded-full border-2 border-black justify-center items-center mr-3"
+                        autoFocus
+                      />
+                    </Input>
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleMoonToggle(player.id);
+                      }}
+                      className="w-10 h-10 rounded-lg border-2 border-black justify-center items-center"
                       style={{
                         backgroundColor:
-                          shootMoonPlayerId === player.id
-                            ? player.color
-                            : "#fff",
+                          shootMoonPlayerId === player.id ? "#fef3c7" : "#fff",
                         boxShadow: "2px 2px 0px #000",
                       }}
                     >
+                      <Moon
+                        size={20}
+                        color="#000"
+                        fill={
+                          shootMoonPlayerId === player.id ? "#fbbf24" : "none"
+                        }
+                      />
+                    </Pressable>
+                  </Box>
+                ) : (
+                  <Box className="flex-row items-center gap-2">
+                    {scores[player.id] && (
                       <Text
                         style={{
                           fontFamily: "Card",
-                          fontSize: 14,
-                          color: "#000",
+                          fontSize: 18,
+                          color: "#666",
+                          minWidth: 40,
+                          textAlign: "right",
                         }}
                       >
-                        {player.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
+                        {scores[player.id]}
                       </Text>
-                    </Box>
-                    <Text
-                      style={{ fontFamily: "SpaceMonoRegular", fontSize: 16 }}
-                    >
-                      {player.name}
-                    </Text>
-                  </Pressable>
-                ))}
-
-                {shootMoonPlayerId && (
-                  <Pressable
-                    onPress={() => setShootMoonPlayerId(null)}
-                    className="mt-2 p-3 border-2 border-black rounded-xl bg-gray-200"
-                    style={{ boxShadow: "2px 2px 0px #000" }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "SpaceMonoRegular",
-                        fontSize: 14,
-                        textAlign: "center",
-                      }}
-                    >
-                      Clear Selection
-                    </Text>
-                  </Pressable>
+                    )}
+                    {shootMoonPlayerId === player.id && (
+                      <Box
+                        className="w-6 h-6 rounded justify-center items-center"
+                        style={{ backgroundColor: "#fef3c7" }}
+                      >
+                        <Moon size={16} color="#000" fill="#fbbf24" />
+                      </Box>
+                    )}
+                  </Box>
                 )}
-              </Box>
-            </Box>
-          </ScrollView>
+              </Pressable>
+            ))}
+          </Box>
         </ModalBody>
 
-        <ModalFooter className="bg-gray-100 justify-center mx-2 mt-4">
+        {/* Footer */}
+        <ModalFooter className="pt-4 gap-3">
           <Button
             size="lg"
             variant="outline"
