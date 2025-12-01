@@ -12,12 +12,6 @@ import { Input, InputField } from "../src/components/ui/input";
 import {
   getUserName,
   setUserName,
-  getGinValue,
-  setGinValue,
-  getBigGinValue,
-  setBigGinValue,
-  getUndercutValue,
-  setUndercutValue,
   getTargetScore,
   setTargetScore,
   storage,
@@ -35,27 +29,18 @@ export default function SettingsScreen() {
   const router = useRouter();
   // State to hold the user's name
   const [name, setName] = useState("");
-  // State to hold bonus values
-  const [gin, setGin] = useState(25);
-  const [bigGin, setBigGin] = useState(31);
-  const [undercut, setUndercut] = useState(25);
+  // State to hold target score
   const [targetScore, setTargetScoreState] = useState(100);
 
-  // Load the user's name and bonus values when the screen loads
+  // Load the user's name and target score when the screen loads
   useEffect(() => {
     setName(getUserName());
-    setGin(getGinValue());
-    setBigGin(getBigGinValue());
-    setUndercut(getUndercutValue());
     setTargetScoreState(getTargetScore());
   }, []);
 
-  // Handler for saving the new name and bonus values
+  // Handler for saving the new name and target score
   function handleSave() {
     setUserName(name.trim() || "You");
-    setGinValue(gin);
-    setBigGinValue(bigGin);
-    setUndercutValue(undercut);
     setTargetScore(targetScore);
     router.back();
   }
@@ -120,9 +105,8 @@ export default function SettingsScreen() {
               </Input>
             </Box>
 
-            {/* Bonus Value Inputs */}
-            <Box className=" rounded-lg p-4 pt-2 ">
-              {/* Default Target Score Input */}
+            {/* Target Score Input */}
+            <Box className=" rounded-lg p-4 pt-2 mb-4">
               <Text
                 className="text-lg font-semibold mb-2"
                 style={{ fontFamily: "SpaceMonoRegular" }}
@@ -143,83 +127,6 @@ export default function SettingsScreen() {
                   value={targetScore.toString()}
                   onChangeText={(v: string) =>
                     setTargetScoreState(Number(v.replace(/[^0-9]/g, "")))
-                  }
-                  keyboardType="numeric"
-                  style={{ fontFamily: "SpaceMonoRegular" }}
-                />
-              </Input>
-            </Box>
-            <Box className=" rounded-lg p-4 pt-2 mb-4">
-              <Text
-                className="text-lg font-semibold"
-                style={{ fontFamily: "SpaceMonoRegular" }}
-              >
-                Gin Bonus
-              </Text>
-              <Input
-                variant="outline"
-                size="md"
-                isDisabled={false}
-                className="mb-2"
-                style={{
-                  boxShadow: "4px 4px 0px #000",
-                }}
-              >
-                <InputField
-                  placeholder="Gin Bonus"
-                  value={gin.toString()}
-                  onChangeText={(v: string) =>
-                    setGin(Number(v.replace(/[^0-9]/g, "")))
-                  }
-                  keyboardType="numeric"
-                  style={{ fontFamily: "SpaceMonoRegular" }}
-                />
-              </Input>
-              <Text
-                className="text-lg font-semibold"
-                style={{ fontFamily: "SpaceMonoRegular" }}
-              >
-                Big Gin Bonus
-              </Text>
-              <Input
-                variant="outline"
-                size="md"
-                isDisabled={false}
-                className="mb-2"
-                style={{
-                  boxShadow: "4px 4px 0px #000",
-                }}
-              >
-                <InputField
-                  placeholder="Big Gin Bonus"
-                  value={bigGin.toString()}
-                  onChangeText={(v: string) =>
-                    setBigGin(Number(v.replace(/[^0-9]/g, "")))
-                  }
-                  keyboardType="numeric"
-                  style={{ fontFamily: "SpaceMonoRegular" }}
-                />
-              </Input>
-              <Text
-                className="text-lg font-semibold"
-                style={{ fontFamily: "SpaceMonoRegular" }}
-              >
-                Undercut Bonus
-              </Text>
-              <Input
-                variant="outline"
-                size="md"
-                isDisabled={false}
-                className="mb-2"
-                style={{
-                  boxShadow: "4px 4px 0px #000",
-                }}
-              >
-                <InputField
-                  placeholder="Undercut Bonus"
-                  value={undercut.toString()}
-                  onChangeText={(v: string) =>
-                    setUndercut(Number(v.replace(/[^0-9]/g, "")))
                   }
                   keyboardType="numeric"
                   style={{ fontFamily: "SpaceMonoRegular" }}

@@ -3,6 +3,12 @@ import { MMKV } from "react-native-mmkv";
 // Create a single MMKV storage instance
 export const storage = new MMKV();
 
+// Hearts scoring constants
+export const QUEEN_OF_SPADES_PENALTY = 13;
+export const SHOOT_MOON_VALUE = 26;
+export const POINTS_PER_HEART = 1;
+export const MAX_POINTS_PER_ROUND = 26; // 13 hearts + 13 for queen
+
 // --- Type Definitions ---
 // These types match the structure used in asyncStorage.ts for full compatibility
 export type Game = {

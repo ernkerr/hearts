@@ -10,9 +10,6 @@ import {
   generateId,
   Game,
   getTargetScore,
-  getGinValue,
-  getBigGinValue,
-  getUndercutValue,
 } from "../../src/utils/mmkvStorage";
 import {
   Modal,
@@ -40,18 +37,11 @@ export default function NewGameScreen() {
 
   // State for loading
   const [loading, setLoading] = useState(false);
-  // State for bonus values
-  const [gin, setGin] = useState(25);
-  const [bigGin, setBigGin] = useState(31);
-  const [undercut, setUndercut] = useState(25);
   const [showModal, setShowModal] = useState(true);
 
   // Check if the user has paid and prefill values when the screen loads
   useEffect(() => {
     setHasPaid(getHasPaid());
-    setGin(getGinValue());
-    setBigGin(getBigGinValue());
-    setUndercut(getUndercutValue());
     const defaultTarget = getTargetScore();
     setTargetScore(defaultTarget.toString());
   }, []);
@@ -77,7 +67,7 @@ export default function NewGameScreen() {
         score = 0; // 0 means 'No Limit'
       } else {
         score = parseInt(targetScore) || 100;
-        if (score < 1) score = 100;
+        if (score < 1) score = 1;
       }
     }
     setLoading(true);
@@ -88,9 +78,6 @@ export default function NewGameScreen() {
       scoreHistory: [],
       winner: null,
       targetScore: score,
-      ginBonus: gin,
-      bigGinBonus: bigGin,
-      undercutBonus: undercut,
     };
     // Add the new game to the opponent
     opponents[opponentIndex].games.push(newGame);
@@ -130,24 +117,6 @@ export default function NewGameScreen() {
               style={{ fontFamily: "SpaceMonoRegular" }}
             >
               Target Score: {targetScore}
-            </Text>
-            <Text
-              className="bg-yellow-300 text-black font-bold border-4 border-black rounded-lg px-4 py-2 mb-2 text-center shadow-[4px_4px_0px_#000]"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              Gin Bonus: {gin}
-            </Text>
-            <Text
-              className="bg-yellow-300 text-black font-bold border-4 border-black rounded-lg px-4 py-2 mb-2 text-center shadow-[4px_4px_0px_#000]"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              Big Gin Bonus: {bigGin}
-            </Text>
-            <Text
-              className="bg-yellow-300 text-black font-bold border-4 border-black rounded-lg px-4 py-2 mb-2 text-center shadow-[4px_4px_0px_#000]"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              Undercut Bonus: {undercut}
             </Text>
           </ModalBody>
           <ModalFooter className="flex-row  gap-4 mx-4">
@@ -240,78 +209,6 @@ export default function NewGameScreen() {
             Target Score: 100 (free version limit)
           </Text>
         )}
-        {/* Gin Bonus input */}
-        <Text
-          className="text-lg font-semibold mt-4 mb-2"
-          style={{ fontFamily: "SpaceMonoRegular" }}
-        >
-          Gin Bonus
-        </Text>
-        <Input
-          variant="outline"
-          size="md"
-          isDisabled={loading}
-          style={{
-            boxShadow: "4px 4px 0px #000",
-          }}
-        >
-          <InputField
-            placeholder="Gin Bonus"
-            value={gin.toString()}
-            onChangeText={(v: string) =>
-              setGin(Number(v.replace(/[^0-9]/g, "")))
-            }
-            keyboardType="numeric"
-          />
-        </Input>
-        {/* Big Gin Bonus input */}
-        <Text
-          className="text-lg font-semibold mt-4 mb-2"
-          style={{ fontFamily: "SpaceMonoRegular" }}
-        >
-          Big Gin Bonus
-        </Text>
-        <Input
-          variant="outline"
-          size="md"
-          isDisabled={loading}
-          style={{
-            boxShadow: "4px 4px 0px #000",
-          }}
-        >
-          <InputField
-            placeholder="Big Gin Bonus"
-            value={bigGin.toString()}
-            onChangeText={(v: string) =>
-              setBigGin(Number(v.replace(/[^0-9]/g, "")))
-            }
-            keyboardType="numeric"
-          />
-        </Input>
-        {/* Undercut Bonus input */}
-        <Text
-          className="text-lg font-semibold mt-4 mb-2"
-          style={{ fontFamily: "SpaceMonoRegular" }}
-        >
-          Undercut Bonus
-        </Text>
-        <Input
-          variant="outline"
-          size="md"
-          isDisabled={loading}
-          style={{
-            boxShadow: "4px 4px 0px #000",
-          }}
-        >
-          <InputField
-            placeholder="Undercut Bonus"
-            value={undercut.toString()}
-            onChangeText={(v: string) =>
-              setUndercut(Number(v.replace(/[^0-9]/g, "")))
-            }
-            keyboardType="numeric"
-          />
-        </Input>
 
         {/* Create game button */}
         <View className="flex-row justify-center mt-6 gap-4">
