@@ -1,446 +1,321 @@
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, Stack } from "expo-router";
-import { View, Text, FlatList, Pressable } from "react-native";
-import { calculateWinner, getTotalScore } from "../../src/utils/gameLogic";
+import { Pressable, ScrollView } from "react-native";
+import { calculateWinner, getAllPlayerTotals } from "../../src/utils/gameLogic";
 import {
-  getOpponents,
-  saveOpponents,
-  getHasPaid,
-  getUserName,
-  Opponent,
-  Game,
+  getGameById,
+  updateGame,
+  type Game,
+  type Round,
 } from "../../src/utils/mmkvStorage";
 
 //ui
 import LottieView from "lottie-react-native";
-import { Crown, Pencil, Martini, Sparkle, Scissors } from "lucide-react-native";
+import { Crown, Pencil } from "lucide-react-native";
 import { Box } from "@/src/components/ui/box";
-import { KnockModal } from "../../src/components/KnockModal";
-import { ScoreModal } from "../../src/components/ScoreModal";
+import { Text } from "@/src/components/ui/text";
 import { Button, ButtonText } from "../../src/components/ui/button";
-import PaywallModal from "@/src/components/PaywallModal";
+import { Avatar, AvatarFallbackText } from "../../src/components/ui/avatar";
+import { MultiPlayerScoreModal } from "../../src/components/MultiPlayerScoreModal";
 
-// This screen shows the details for a single game, including all rounds and scores
+// Game detail screen showing scoreboard and rounds
 export default function GameDetailScreen() {
-  const { id } = useLocalSearchParams(); // game id
-  const [opponent, setOpponent] = useState<Opponent | null>(null);
+  const { id } = useLocalSearchParams();
   const [game, setGame] = useState<Game | null>(null);
-  const [userName, setUserName] = useState("You");
-  const [hasPaid, setHasPaid] = useState(false);
-  // State for new round scores
-  const [winner, setWinner] = useState<"user" | "opponent" | null>(null);
-  const [score, setScore] = useState("");
-  const [loading, setLoading] = useState(false);
-  // score modal
   const [scoreModalVisible, setScoreModalVisible] = useState(false);
   const [editRoundIndex, setEditRoundIndex] = useState<number | null>(null);
-  // knock modal
-  const [knockModalVisible, setKnockModalVisible] = useState(false);
-  // knock value
-  const [knockValue, setKnockValue] = useState<number | undefined>(undefined);
-  const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // Load game and opponent data when the screen loads or id changes
+  // Load game data
   useEffect(() => {
-    setUserName(getUserName());
-    setHasPaid(getHasPaid());
-    // Find the opponent and game by id
-    const allOpponents = getOpponents();
-    let foundOpponent: Opponent | null = null;
-    let foundGame: Game | null = null;
-    for (const opp of allOpponents) {
-      const g = opp.games.find((game) => game.id === id);
-      if (g) {
-        foundOpponent = opp;
-        foundGame = g;
-        break;
+    if (typeof id === "string") {
+      const foundGame = getGameById(id);
+      setGame(foundGame);
+
+      // Show confetti if game just completed
+      if (foundGame?.status === "completed" && !showConfetti) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
       }
     }
-    setOpponent(foundOpponent);
-    setGame(foundGame);
-    setKnockValue(foundGame?.knockValue);
   }, [id]);
 
-  // Clear input fields when modal closes
-  useEffect(() => {
-    if (!scoreModalVisible) {
-      setWinner(null);
-      setScore("");
-      setEditRoundIndex(null);
-    }
-  }, [scoreModalVisible]);
-
-  // Handler for adding a new round or editing an existing one
+  // Handler for adding or editing a round
   function handleSaveRound(
-    totalScore: number,
-    bonusType: "gin" | "bigGin" | "undercut" | null
+    scores: { [playerId: string]: number },
+    bonusType?: "queenOfSpades" | "shootMoon" | null,
+    bonusPlayerId?: string
   ) {
-    if (!game || !opponent) return;
-    let user = 0,
-      opp = 0;
-    if (winner === "user") user = totalScore;
-    if (winner === "opponent") opp = totalScore;
-    setLoading(true);
-    let updatedScoreHistory;
+    if (!game) return;
+
+    const newRound: Round = {
+      date: new Date().toISOString(),
+      scores,
+      bonusType: bonusType || null,
+      bonusPlayerId: bonusPlayerId || undefined,
+    };
+
+    let updatedRounds: Round[];
     if (editRoundIndex !== null) {
-      // Edit mode
-      updatedScoreHistory = game.scoreHistory.map((round, idx) =>
-        idx === editRoundIndex
-          ? {
-              ...round,
-              user,
-              opponent: opp,
-              date: round.date || new Date().toISOString(),
-              bonusType,
-            }
-          : round
-      );
+      // Editing existing round
+      updatedRounds = [...game.rounds];
+      updatedRounds[editRoundIndex] = newRound;
     } else {
-      // Add mode: add a new round to the game's history
-      updatedScoreHistory = [
-        ...game.scoreHistory,
-        { user, opponent: opp, date: new Date().toISOString(), bonusType },
-      ];
+      // Adding new round
+      updatedRounds = [...game.rounds, newRound];
     }
-    // Winner calculation
-    const gameWinner = calculateWinner(updatedScoreHistory, game.targetScore);
+
+    // Calculate winner
+    const winnerId = calculateWinner(updatedRounds, game.players, game.targetScore);
+    const newStatus = winnerId ? "completed" : "in_progress";
+
+    // Update game
     const updatedGame: Game = {
       ...game,
-      scoreHistory: updatedScoreHistory,
-      winner: gameWinner,
+      rounds: updatedRounds,
+      winner: winnerId,
+      status: newStatus,
     };
-    // Update storage
-    const allOpponents = getOpponents();
-    const oppIndex = allOpponents.findIndex((o) => o.id === opponent.id);
-    if (oppIndex !== -1) {
-      const games = allOpponents[oppIndex].games.map((g) =>
-        g.id === game.id ? updatedGame : g
-      );
-      allOpponents[oppIndex].games = games;
-      saveOpponents(allOpponents);
-    }
+
+    updateGame(game.id, updatedGame);
     setGame(updatedGame);
-    setWinner(null);
-    setScore("");
+    setScoreModalVisible(false);
     setEditRoundIndex(null);
-    setLoading(false);
+
+    // Show confetti if game just completed
+    if (winnerId && newStatus === "completed") {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
   }
 
-  // When opening modal for editing, prefill scores
-  function openEditModal(index: number) {
-    if (!game) return;
-    setEditRoundIndex(index);
-    const round = game.scoreHistory[index];
-    let baseScore = 0;
-    let bonusValue = 0;
-    if (round.bonusType === "gin") bonusValue = game.ginBonus ?? 25;
-    if (round.bonusType === "bigGin") bonusValue = game.bigGinBonus ?? 31;
-    if (round.bonusType === "undercut") bonusValue = game.undercutBonus ?? 25;
-    if (round.user > 0) {
-      setWinner("user");
-      baseScore = round.user - bonusValue;
-      setScore(baseScore > 0 ? baseScore.toString() : "0");
-    } else if (round.opponent > 0) {
-      setWinner("opponent");
-      baseScore = round.opponent - bonusValue;
-      setScore(baseScore > 0 ? baseScore.toString() : "0");
-    } else {
-      setWinner(null);
-      setScore("");
-    }
+  function handleAddRound() {
+    setEditRoundIndex(null);
     setScoreModalVisible(true);
   }
 
-  // Handler for saving knock value
-  function handleSaveKnockValue(value: number | undefined) {
-    if (!game || !opponent) return;
-    setLoading(true);
-    const updatedGame: Game = { ...game, knockValue: value };
-    // Update the opponent's games in storage
-    const allOpponents = getOpponents();
-    const oppIndex = allOpponents.findIndex((o) => o.id === opponent.id);
-    if (oppIndex !== -1) {
-      const games = allOpponents[oppIndex].games.map((g) =>
-        g.id === game.id ? updatedGame : g
-      );
-      allOpponents[oppIndex].games = games;
-      saveOpponents(allOpponents);
-    }
-    setGame(updatedGame);
-    setKnockValue(value);
-    setLoading(false);
-    setKnockModalVisible(false);
+  function handleEditRound(index: number) {
+    setEditRoundIndex(index);
+    setScoreModalVisible(true);
   }
 
-  if (!game || !opponent) return <Text>Loading...</Text>;
+  if (!game) {
+    return (
+      <Box className="flex-1 justify-center items-center bg-gray-100">
+        <Text style={{ fontFamily: "SpaceMonoRegular" }}>Game not found</Text>
+      </Box>
+    );
+  }
 
-  // Calculate total scores using utility
-  const yourTotal = getTotalScore(game.scoreHistory, "user");
-  const oppTotal = getTotalScore(game.scoreHistory, "opponent");
+  const playerTotals = getAllPlayerTotals(game.rounds, game.players);
+  const lowestScore = Math.min(...Object.values(playerTotals));
+  const winnerPlayer = game.winner
+    ? game.players.find((p) => p.id === game.winner)
+    : null;
+
+  const editRound = editRoundIndex !== null ? game.rounds[editRoundIndex] : undefined;
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: `${userName} vs ${opponent.name}`,
-          headerTitleStyle: {
-            fontFamily: "SpaceMono",
-          },
+          title: "Game",
+          headerTitleStyle: { fontFamily: "SpaceMono" },
         }}
       />
 
-      <View className="flex-1 p-4 bg-white ">
-        {/* Confetti when game is complete */}
-        {game.winner && (
-          <View
+      <MultiPlayerScoreModal
+        visible={scoreModalVisible}
+        onClose={() => {
+          setScoreModalVisible(false);
+          setEditRoundIndex(null);
+        }}
+        onSave={handleSaveRound}
+        players={game.players}
+        editRoundScores={editRound?.scores}
+        editBonusType={editRound?.bonusType}
+        editBonusPlayerId={editRound?.bonusPlayerId}
+        editRoundIndex={editRoundIndex}
+      />
+
+      <Box className="flex-1 bg-gray-100">
+        {/* Confetti Animation */}
+        {showConfetti && game.status === "completed" && (
+          <LottieView
+            source={require("../../assets/animations/confetti.json")}
+            autoPlay
+            loop={false}
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              zIndex: 9999,
+              zIndex: 1000,
               pointerEvents: "none",
-              justifyContent: "center",
-              alignItems: "center",
             }}
-            pointerEvents="none"
-          >
-            <LottieView
-              source={require("../../assets/animations/confetti.json")}
-              autoPlay
-              loop={false}
-              style={{ width: "100%", height: "100%" }}
-              speed={1}
-            />
-          </View>
-        )}
-        {/* Game header with total scores */}
-        <View className="flex-row justify-between p-4 mx-20">
-          <View className="items-center">
-            {yourTotal !== oppTotal && (
-              <View style={{ height: 24 }}>
-                {yourTotal > oppTotal && <Crown size={24} color="#000" />}
-              </View>
-            )}
-            <Text
-              className="text-lg font-semibold"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              {userName}
-            </Text>
-            <Text
-              className="text-3xl font-bold"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              {yourTotal}
-            </Text>
-          </View>
-          <View className="items-center">
-            {yourTotal !== oppTotal && (
-              <View style={{ height: 24 }}>
-                {oppTotal > yourTotal && <Crown size={24} color="#000" />}
-              </View>
-            )}
-            <Text
-              className="text-lg font-semibold"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              {opponent.name}
-            </Text>
-            <Text
-              className="text-3xl font-bold"
-              style={{ fontFamily: "SpaceMonoRegular" }}
-            >
-              {oppTotal}
-            </Text>
-          </View>
-        </View>
-        {/* Show winner if game is complete */}
-        {game.winner && (
-          <View className="mb-6 p-4 bg-green-100  rounded-lg">
-            <Text className="text-lg font-semibold text-center">
-              Game Complete!{" "}
-              {game.winner === "user"
-                ? `${userName} won!`
-                : `${opponent.name} won!`}
-            </Text>
-          </View>
+          />
         )}
 
-        {/* Knock value display and edit */}
-        <View className="mb-6">
-          {knockValue !== undefined ? (
-            <Button
-              size="lg"
-              onPress={() => setKnockModalVisible(true)}
-              accessibilityLabel="Edit knock value"
-              className=" bg-white"
-              style={{
-                boxShadow: "4px 4px 0px #000",
-              }}
+        <ScrollView className="flex-1">
+          {/* Scoreboard Header */}
+          <Box className="bg-white border-b-2 border-black p-6">
+            <Text
+              className="text-center mb-4"
+              style={{ fontFamily: "Card", fontSize: 20 }}
             >
-              <ButtonText
-                className="text-black"
+              Scoreboard
+            </Text>
+
+            <Box className="flex-row justify-around flex-wrap">
+              {game.players.map((player) => {
+                const total = playerTotals[player.id] || 0;
+                const isLeader = total === lowestScore && game.rounds.length > 0;
+
+                return (
+                  <Box key={player.id} className="items-center mb-4" style={{ width: 80 }}>
+                    <Avatar
+                      size="md"
+                      className="border-2 border-black mb-2"
+                      style={{
+                        backgroundColor: player.color,
+                        boxShadow: "2px 2px 0px #000",
+                      }}
+                    >
+                      <AvatarFallbackText style={{ fontFamily: "Card", color: "#000" }}>
+                        {player.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)}
+                      </AvatarFallbackText>
+                    </Avatar>
+
+                    <Text
+                      className="text-center text-sm mb-1"
+                      style={{ fontFamily: "SpaceMonoRegular" }}
+                      numberOfLines={1}
+                    >
+                      {player.name}
+                    </Text>
+
+                    <Box className="flex-row items-center">
+                      {isLeader && <Crown size={14} color="#FFD700" style={{ marginRight: 4 }} />}
+                      <Text
+                        className="font-bold text-lg"
+                        style={{ fontFamily: "Card" }}
+                      >
+                        {total}
+                      </Text>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+
+          {/* Winner Message */}
+          {game.status === "completed" && winnerPlayer && (
+            <Box className="bg-green-200 border-2 border-black m-6 p-4 rounded-xl" style={{ boxShadow: "4px 4px 0px #000" }}>
+              <Text
+                className="text-center font-bold text-xl"
+                style={{ fontFamily: "Card" }}
+              >
+                🎉 {winnerPlayer.name} Wins! 🎉
+              </Text>
+              <Text
+                className="text-center text-gray-700 mt-1"
                 style={{ fontFamily: "SpaceMonoRegular" }}
               >
-                Knock: {knockValue}
-              </ButtonText>
-            </Button>
-          ) : (
-            <Button
-              size="lg"
-              onPress={() => setKnockModalVisible(true)}
-              disabled={loading}
-              className="bg-white"
-              style={{
-                boxShadow: "4px 4px 0px #000",
-              }}
-            >
-              <ButtonText className="text-black">Add Knock</ButtonText>
-            </Button>
-          )}
-        </View>
-        <KnockModal
-          visible={knockModalVisible}
-          onClose={() => setKnockModalVisible(false)}
-          onSave={handleSaveKnockValue}
-          initialValue={knockValue}
-          loading={loading}
-        />
-        {/* Modal for adding or editing score */}
-        <ScoreModal
-          visible={scoreModalVisible}
-          onClose={() => setScoreModalVisible(false)}
-          onSave={handleSaveRound}
-          loading={loading}
-          winner={winner}
-          setWinner={setWinner}
-          score={score}
-          setScore={setScore}
-          editRoundIndex={editRoundIndex}
-          userName={userName}
-          opponentName={opponent.name}
-          ginBonus={game.ginBonus}
-          bigGinBonus={game.bigGinBonus}
-          undercutBonus={game.undercutBonus}
-          editBonusType={
-            editRoundIndex !== null
-              ? game.scoreHistory[editRoundIndex]?.bonusType ?? null
-              : null
-          }
-          scoreHistory={game.scoreHistory}
-          hasPaid={hasPaid}
-          onShowPaywall={() => setShowPaywallModal(true)}
-        />
-        {/* List of rounds */}
-        <Text
-          className="text-lg font-semibold mb-2"
-          style={{ fontFamily: "SpaceMonoRegular" }}
-        >
-          Rounds
-        </Text>
-        <FlatList
-          data={game.scoreHistory}
-          keyExtractor={(_, idx) => idx.toString()}
-          renderItem={({ item, index }) => (
-            <Box className="flex-row items-center p-4 bg-gray-100  rounded-lg mb-2">
-              <Text
-                className="text-gray-500"
-                style={{
-                  fontFamily: "SpaceMonoRegular",
-                  flex: 1,
-                  textAlign: "center",
-                }}
-              >
-                {index + 1}
+                Final Score: {playerTotals[winnerPlayer.id]}
               </Text>
-              <Text
-                className="text-gray-600"
-                style={{
-                  fontFamily: "SpaceMonoRegular",
-                  flex: 2,
-                  textAlign: "center",
-                }}
-              >
-                {item.user || 0}
-              </Text>
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {item.bonusType === "gin" && (
-                  <Martini size={18} color="#26ABFF" />
-                )}
-                {item.bonusType === "bigGin" && (
-                  <Sparkle size={18} color="#26ABFF" />
-                )}
-                {item.bonusType === "undercut" && (
-                  <Scissors size={18} color="#26ABFF" />
-                )}
-                {(!item.bonusType || item.bonusType === null) && (
-                  <View style={{ width: 18, height: 18 }} />
-                )}
-              </View>
-              <Text
-                className="text-gray-600"
-                style={{
-                  fontFamily: "SpaceMonoRegular",
-                  flex: 2,
-                  textAlign: "center",
-                }}
-              >
-                {item.opponent || 0}
-              </Text>
-              <Pressable
-                onPress={() => openEditModal(index)}
-                className="ml-2"
-                accessibilityLabel={`Edit game ${index + 1}`}
-                style={{ flex: 1, alignItems: "center" }}
-              >
-                <Pencil size={18} color="gray" />
-              </Pressable>
             </Box>
           )}
-          ListEmptyComponent={
-            <Text className="p-4 text-center text-gray-500">
-              No games yet. Add your first game!
-            </Text>
-          }
-        />
-        {/* <Text className="text-gray-500 mb-4 text-center">
-          Target Score:{" "}
-          {game.targetScore ? game.targetScore : hasPaid ? "No Limit" : 100}
-        </Text> */}
-        {/* Add round form if game is not complete */}
-        {!game.winner && (
-          <View className="mb-6">
-            <Button
-              size="lg"
-              onPress={() => setScoreModalVisible(true)}
-              disabled={loading}
-              className=""
-              style={{
-                boxShadow: "4px 4px 0px #000",
-              }}
+
+          {/* Rounds List */}
+          <Box className="p-6">
+            <Text
+              className="font-bold text-xl mb-4"
+              style={{ fontFamily: "Card" }}
             >
-              <ButtonText className="text-white">Add Score</ButtonText>
+              Rounds ({game.rounds.length})
+            </Text>
+
+            {game.rounds.length === 0 ? (
+              <Box className="bg-white border-2 border-black rounded-xl p-8" style={{ boxShadow: "4px 4px 0px #000" }}>
+                <Text
+                  className="text-center text-gray-500"
+                  style={{ fontFamily: "SpaceMonoRegular" }}
+                >
+                  No rounds yet. Add your first round!
+                </Text>
+              </Box>
+            ) : (
+              game.rounds.map((round, index) => (
+                <Box
+                  key={index}
+                  className="bg-white border-2 border-black rounded-xl p-4 mb-4"
+                  style={{ boxShadow: "4px 4px 0px #000" }}
+                >
+                  <Box className="flex-row justify-between items-center mb-3">
+                    <Text style={{ fontFamily: "Card", fontSize: 16 }}>
+                      Round {index + 1}
+                    </Text>
+                    <Pressable onPress={() => handleEditRound(index)}>
+                      <Pencil size={20} color="#000" />
+                    </Pressable>
+                  </Box>
+
+                  {/* Scores for each player */}
+                  <Box className="flex-row flex-wrap">
+                    {game.players.map((player) => (
+                      <Box
+                        key={player.id}
+                        className="flex-row items-center mr-4 mb-2"
+                      >
+                        <Box
+                          className="w-4 h-4 rounded-full border border-black mr-1"
+                          style={{ backgroundColor: player.color }}
+                        />
+                        <Text style={{ fontFamily: "SpaceMonoRegular", fontSize: 14 }}>
+                          {player.name.split(" ")[0]}: {round.scores[player.id] || 0}
+                        </Text>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  {/* Bonus indicator */}
+                  {round.bonusType && (
+                    <Text
+                      className="text-sm text-gray-600 mt-2"
+                      style={{ fontFamily: "SpaceMonoRegular" }}
+                    >
+                      {round.bonusType === "queenOfSpades" && "♠️ Queen of Spades"}
+                      {round.bonusType === "shootMoon" && "🌙 Shot the Moon"}
+                    </Text>
+                  )}
+                </Box>
+              ))
+            )}
+          </Box>
+        </ScrollView>
+
+        {/* Add Round Button */}
+        {game.status === "in_progress" && (
+          <Box className="p-6">
+            <Button
+              onPress={handleAddRound}
+              className="bg-black border-2 border-black rounded-xl"
+              style={{ boxShadow: "4px 4px 0px #000" }}
+            >
+              <ButtonText style={{ fontFamily: "Card", fontSize: 18 }}>
+                Add Round
+              </ButtonText>
             </Button>
-          </View>
+          </Box>
         )}
-      </View>
-      <PaywallModal
-        isOpen={showPaywallModal}
-        onClose={() => setShowPaywallModal(false)}
-        message="You can only play up to 100 points for free. Pay to unlock unlimited points!"
-        onSuccess={() => {
-          setHasPaid(true);
-          setShowPaywallModal(false);
-        }}
-      />
+      </Box>
     </>
   );
 }

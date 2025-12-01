@@ -123,68 +123,39 @@ export default function NewGameScreen() {
 
       <ScrollView className="flex-1 bg-gray-100">
         <Box className="p-8">
-          <Text
-            className="text-xl font-bold mb-4"
-            style={{ fontFamily: "Card", fontSize: 24 }}
-          >
-            Players ({players.length}/5)
-          </Text>
-          <Text
-            className="text-gray-600 mb-6"
-            style={{ fontFamily: "SpaceMonoRegular" }}
-          >
-            Add 3-5 players to start the game
-          </Text>
-
           {players.map((player, index) => (
             <Box
               key={player.id}
               className="bg-white rounded-2xl border-2 border-black p-4 mb-6"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
-              <Box className="flex-row justify-between items-center mb-2">
-                <Text
-                  className="font-bold text-lg"
-                  style={{ fontFamily: "Card" }}
-                >
-                  {index === 0 ? "You" : `Player ${index + 1}`}
-                </Text>
+              <Box className="flex-row items-center mb-4 gap-2">
+                <Box className="flex-1">
+                  <Input
+                    className="border-2 border-black rounded-xl"
+                    style={{ boxShadow: "2px 2px 0px #000" }}
+                  >
+                    <InputField
+                      value={player.name}
+                      onChangeText={(text) => handleUpdatePlayerName(index, text)}
+                      placeholder={index === 0 ? "You" : `Player ${index + 1}`}
+                      style={{ fontFamily: "SpaceMonoRegular" }}
+                      editable={index === 0 ? false : true}
+                    />
+                  </Input>
+                </Box>
                 {index > 0 && (
                   <Button
                     onPress={() => handleRemovePlayer(index)}
                     className="bg-red-500 border-2 border-black rounded-lg p-2"
                     size="sm"
+                    style={{ boxShadow: "2px 2px 0px #000" }}
                   >
                     <X size={16} color="#fff" />
                   </Button>
                 )}
               </Box>
 
-              <Text
-                className="mb-2 font-medium"
-                style={{ fontFamily: "SpaceMonoRegular" }}
-              >
-                Name
-              </Text>
-              <Input
-                className="mb-4 border-2 border-black rounded-xl"
-                style={{ boxShadow: "2px 2px 0px #000" }}
-              >
-                <InputField
-                  value={player.name}
-                  onChangeText={(text) => handleUpdatePlayerName(index, text)}
-                  placeholder="Enter player name"
-                  style={{ fontFamily: "SpaceMonoRegular" }}
-                  editable={index === 0 ? false : true} // User name comes from settings
-                />
-              </Input>
-
-              <Text
-                className="mb-2 font-medium"
-                style={{ fontFamily: "SpaceMonoRegular" }}
-              >
-                Color
-              </Text>
               <ColorPicker
                 selectedColor={player.color}
                 onSelect={(color) => handleUpdatePlayerColor(index, color)}
