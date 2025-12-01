@@ -70,7 +70,7 @@ export default function SettingsScreen() {
         options={{
           title: "Settings",
           headerTitleStyle: {
-            fontFamily: "SpaceMono",
+            fontFamily: "Card",
           },
         }}
       />
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
             <Box className=" rounded-lg p-4 mb-2">
               <Text
                 className="text-lg font-semibold mb-2 "
-                style={{ fontFamily: "SpaceMonoRegular" }}
+                style={{ fontFamily: "Card" }}
               >
                 Name
               </Text>
@@ -106,16 +106,15 @@ export default function SettingsScreen() {
             </Box>
 
             {/* Target Score Input */}
-            <Box className=" rounded-lg p-4 pt-2 mb-4">
+            <Box className=" rounded-lg p-4 pt-2 mb-24">
               <Text
                 className="text-lg font-semibold mb-2"
-                style={{ fontFamily: "SpaceMonoRegular" }}
+                style={{ fontFamily: "Card" }}
               >
                 Default Target Score
               </Text>
               <Input
-                variant="outline"
-                size="md"
+                size="lg"
                 isDisabled={false}
                 className="mb-2"
                 style={{
