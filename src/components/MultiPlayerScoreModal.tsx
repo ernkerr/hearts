@@ -56,6 +56,9 @@ export function MultiPlayerScoreModal({
       });
       setScores(initialScores);
 
+      // Set selected player to first player
+      setSelectedPlayerId(players[0]?.id || null);
+
       // Set shoot moon state if editing
       if (editBonusType === "shootMoon" && editBonusPlayerId) {
         setShootMoonPlayerId(editBonusPlayerId);
@@ -93,21 +96,12 @@ export function MultiPlayerScoreModal({
   }
 
   function handleSave() {
-    // Validate all scores are entered
-    const allScoresValid = players.every((p) => {
-      const score = scores[p.id];
-      return score !== "" && !isNaN(parseInt(score, 10));
-    });
-
-    if (!allScoresValid) {
-      alert("Please enter valid scores for all players");
-      return;
-    }
-
-    // Convert scores to numbers (they're already updated if moon was clicked)
+    // Convert scores to numbers, defaulting empty values to 0
     const finalScores: { [playerId: string]: number } = {};
     players.forEach((p) => {
-      finalScores[p.id] = parseInt(scores[p.id], 10);
+      const score = scores[p.id];
+      const parsedScore = score === "" ? 0 : parseInt(score, 10);
+      finalScores[p.id] = isNaN(parsedScore) ? 0 : parsedScore;
     });
 
     // Pass shoot moon info if it was used
