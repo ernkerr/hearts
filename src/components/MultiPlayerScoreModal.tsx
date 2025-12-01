@@ -12,7 +12,7 @@ import { Button, ButtonText } from "./ui/button";
 import { Input, InputField } from "./ui/input";
 import { Box } from "./ui/box";
 import { Text } from "./ui/text";
-import { Moon } from "lucide-react-native";
+import { Moon, Spade } from "lucide-react-native";
 import type { Player } from "../utils/mmkvStorage";
 
 interface MultiPlayerScoreModalProps {
@@ -44,8 +44,12 @@ export function MultiPlayerScoreModal({
   const [shootMoonPlayerId, setShootMoonPlayerId] = useState<string | null>(
     null
   );
+  const [queenOfSpadesPlayerId, setQueenOfSpadesPlayerId] = useState<string | null>(
+    null
+  );
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [originalScores, setOriginalScores] = useState<{ [playerId: string]: string }>({});
+  const [queenOriginalScore, setQueenOriginalScore] = useState<string>("");
 
   // Initialize scores when modal opens
   useEffect(() => {
@@ -59,11 +63,16 @@ export function MultiPlayerScoreModal({
       // Set selected player to first player
       setSelectedPlayerId(players[0]?.id || null);
 
-      // Set shoot moon state if editing
+      // Set bonus states if editing
       if (editBonusType === "shootMoon" && editBonusPlayerId) {
         setShootMoonPlayerId(editBonusPlayerId);
+        setQueenOfSpadesPlayerId(null);
+      } else if (editBonusType === "queenOfSpades" && editBonusPlayerId) {
+        setQueenOfSpadesPlayerId(editBonusPlayerId);
+        setShootMoonPlayerId(null);
       } else {
         setShootMoonPlayerId(null);
+        setQueenOfSpadesPlayerId(null);
       }
     }
   }, [visible, players, editRoundScores, editBonusType, editBonusPlayerId]);
@@ -95,6 +104,23 @@ export function MultiPlayerScoreModal({
     }
   }
 
+  function handleQueenToggle(playerId: string) {
+    if (queenOfSpadesPlayerId === playerId) {
+      // Unclicking - restore original score
+      setQueenOfSpadesPlayerId(null);
+      setScores({ ...scores, [playerId]: queenOriginalScore });
+    } else {
+      // Clicking - save current score and add 13
+      const currentScore = scores[playerId] || "0";
+      setQueenOriginalScore(currentScore);
+      setQueenOfSpadesPlayerId(playerId);
+
+      const currentValue = parseInt(currentScore, 10) || 0;
+      const newScore = currentValue + 13;
+      setScores({ ...scores, [playerId]: newScore.toString() });
+    }
+  }
+
   function handleSave() {
     // Convert scores to numbers, defaulting empty values to 0
     const finalScores: { [playerId: string]: number } = {};
@@ -104,9 +130,11 @@ export function MultiPlayerScoreModal({
       finalScores[p.id] = isNaN(parsedScore) ? 0 : parsedScore;
     });
 
-    // Pass shoot moon info if it was used
+    // Pass bonus info if it was used
     if (shootMoonPlayerId) {
       onSave(finalScores, "shootMoon", shootMoonPlayerId);
+    } else if (queenOfSpadesPlayerId) {
+      onSave(finalScores, "queenOfSpades", queenOfSpadesPlayerId);
     } else {
       onSave(finalScores, null);
     }
@@ -210,6 +238,26 @@ export function MultiPlayerScoreModal({
                     <Pressable
                       onPress={(e) => {
                         e.stopPropagation();
+                        handleQueenToggle(player.id);
+                      }}
+                      className="w-10 h-10 rounded-lg border-2 border-black justify-center items-center"
+                      style={{
+                        backgroundColor:
+                          queenOfSpadesPlayerId === player.id ? "#fee2e2" : "#fff",
+                        boxShadow: "2px 2px 0px #000",
+                      }}
+                    >
+                      <Spade
+                        size={20}
+                        color="#000"
+                        fill={
+                          queenOfSpadesPlayerId === player.id ? "#dc2626" : "none"
+                        }
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
                         handleMoonToggle(player.id);
                       }}
                       className="w-10 h-10 rounded-lg border-2 border-black justify-center items-center"
@@ -242,6 +290,14 @@ export function MultiPlayerScoreModal({
                       >
                         {scores[player.id]}
                       </Text>
+                    )}
+                    {queenOfSpadesPlayerId === player.id && (
+                      <Box
+                        className="w-6 h-6 rounded justify-center items-center"
+                        style={{ backgroundColor: "#fee2e2" }}
+                      >
+                        <Spade size={16} color="#000" fill="#dc2626" />
+                      </Box>
                     )}
                     {shootMoonPlayerId === player.id && (
                       <Box
