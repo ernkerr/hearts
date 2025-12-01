@@ -6,14 +6,21 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "22.11.0"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "22.11.0"
     },
     "production": {
       "autoIncrement": true,
-      "ios": {},
+      "node": "22.11.0",
+      "ios": {
+        "cache": {
+          "clear": true
+        }
+      },
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
