@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 // import { useColorScheme } from "react-native";
 import Splash from "../src/components/splash";
 import { useFonts } from "expo-font";
+import { refreshEntitlement } from "../src/utils/iap";
 
 // This is the main layout of the app
 // It defines the navigation structure
@@ -21,6 +22,12 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Bold.ttf"),
     SpaceMonoRegular: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  // Re-derive subscription entitlement from the store on launch. This honors
+  // existing one-time buyers + promo unlocks, and drops access for lapsed subs.
+  useEffect(() => {
+    refreshEntitlement();
+  }, []);
 
   if (!fontsLoaded) {
     return null;

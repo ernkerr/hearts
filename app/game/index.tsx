@@ -13,6 +13,7 @@ import {
 } from "../../src/utils/mmkvStorage";
 import { SettingsIcon } from "lucide-react-native";
 import PaywallModal from "../../src/components/PaywallModal";
+import { refreshEntitlement } from "../../src/utils/iap";
 
 // Main screen that lists all games (replaces opponents list)
 export default function GamesScreen() {
@@ -30,7 +31,10 @@ export default function GamesScreen() {
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setGames(sorted);
+      // Show the cached value immediately, then re-derive from the store so a
+      // lapsed subscription loses access and a restored/renewed one regains it.
       setHasPaidState(getHasPaid());
+      refreshEntitlement().then((entitled) => setHasPaidState(entitled));
     }, [])
   );
 

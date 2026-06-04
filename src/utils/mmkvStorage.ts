@@ -90,6 +90,12 @@ export function deleteGame(id: string): void {
 // --- Payment ---
 /**
  * Retrieves the payment status (hasPaid) from MMKV storage.
+ *
+ * NOTE: With the subscription model this is a *cached* entitlement value that is
+ * re-derived from the store by `refreshEntitlement()` (see `src/utils/iap.ts`)
+ * on launch and on games-list focus. It can flip back to `false` if a
+ * subscription lapses. Promo unlocks are tracked separately via
+ * `getPromoUnlocked()` so they survive an entitlement refresh.
  */
 export function getHasPaid(): boolean {
   return storage.getBoolean("hasPaid") ?? false;
@@ -100,6 +106,25 @@ export function getHasPaid(): boolean {
  */
 export function setHasPaid(val: boolean) {
   storage.set("hasPaid", val);
+}
+
+// --- Promo unlock (permanent) ---
+/**
+ * Retrieves the promo-unlock flag from MMKV storage.
+ *
+ * This is a permanent, local grant (e.g. a redeemed promo code). It is kept
+ * separate from `hasPaid` so that `refreshEntitlement()` re-deriving store
+ * entitlement can never revoke a promo unlock.
+ */
+export function getPromoUnlocked(): boolean {
+  return storage.getBoolean("promoUnlocked") ?? false;
+}
+
+/**
+ * Sets the permanent promo-unlock flag in MMKV storage.
+ */
+export function setPromoUnlocked(val: boolean) {
+  storage.set("promoUnlocked", val);
 }
 
 // --- User Name ---

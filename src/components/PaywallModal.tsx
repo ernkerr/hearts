@@ -12,7 +12,7 @@ import {
 import { Button, ButtonText } from "./ui/button";
 import { Input, InputField } from "./ui/input";
 import BuyButton from "./BuyButton";
-import { setHasPaid } from "../utils/mmkvStorage";
+import { setHasPaid, setPromoUnlocked } from "../utils/mmkvStorage";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -46,6 +46,10 @@ export default function PaywallModal({
     )
       .then((isValid) => {
         if (isValid) {
+          // Promo unlocks are permanent and live in a separate flag so a later
+          // entitlement refresh (which re-derives `hasPaid` from the store) can
+          // never revoke them.
+          setPromoUnlocked(true);
           setHasPaid(true);
           if (onSuccess) onSuccess();
           onClose();

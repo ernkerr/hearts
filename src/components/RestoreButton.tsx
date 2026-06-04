@@ -1,20 +1,9 @@
 import React, { useState } from "react";
-import { Alert, Platform } from "react-native";
-import {
-  getAvailablePurchases,
-  finishTransaction,
-  Purchase,
-} from "react-native-iap";
+import { Alert } from "react-native";
 import { setHasPaid } from "../utils/mmkvStorage";
+import { ensureIapConnection, isEntitledFromStore } from "../utils/iap";
 import { Button, ButtonText } from "./ui/button";
 import { Spinner } from "./ui/Spinner";
-
-// Define the product ID based on platform
-// This matches the product ID configured in App Store Connect
-const sku = Platform.select({
-  ios: "hearts_premium_ios",
-  android: "hearts_premium_android",
-});
 
 export default function RestoreButton() {
   const [loading, setLoading] = useState(false);
@@ -22,25 +11,19 @@ export default function RestoreButton() {
   const handleRestore = async () => {
     setLoading(true);
     try {
-      // Get all available purchases from the store
-      // This includes both consumable and non-consumable purchases
-      const restoredPurchases: Purchase[] = await getAvailablePurchases();
+      await ensureIapConnection();
+      // Re-check the store for an active subscription OR a honored legacy
+      // one-time purchase. Same derivation as the launch/focus refresh.
+      const entitled = await isEntitledFromStore();
 
-      // Find the specific premium purchase for this app
-      const validPurchase = restoredPurchases.find(
-        (purchase) => purchase.productId === sku
-      );
-
-      if (validPurchase) {
-        // Complete the transaction to acknowledge receipt
-        await finishTransaction({ purchase: validPurchase });
+      if (entitled) {
         // Update local storage to reflect premium status
         await setHasPaid(true);
         Alert.alert("Restored", "Your premium access has been restored.");
       } else {
         Alert.alert(
           "No Purchases Found",
-          "We couldn't find any previous purchases."
+          "We couldn't find an active subscription or previous purchase on this account."
         );
       }
     } catch (err) {
