@@ -25,7 +25,7 @@ import {
   getAvailablePurchases,
   type Purchase,
 } from "react-native-iap";
-import { setHasPaid, getPromoUnlocked } from "./mmkvStorage";
+import { setHasPaid, getHasPaid, getPromoUnlocked } from "./mmkvStorage";
 
 export const IAP_CONFIG = {
   // Auto-renewable subscription product IDs (must match App Store Connect /
@@ -68,15 +68,19 @@ export async function ensureIapConnection(): Promise<boolean> {
 
 /**
  * Does the store report an active subscription OR a legacy one-time purchase?
+ *
+ * Returns null when the store could not be reached (e.g. offline) — callers
+ * must treat that as "unknown", NOT as "not entitled", so a paying user is
+ * never locked out by a failed network call.
  */
-export async function isEntitledFromStore(): Promise<boolean> {
+export async function isEntitledFromStore(): Promise<boolean | null> {
   try {
-    await ensureIapConnection();
+    if (!(await ensureIapConnection())) return null;
     const purchases: Purchase[] = await getAvailablePurchases();
     return purchases.some((p) => ENTITLED_IDS.has(p.productId));
   } catch (e) {
     console.warn("getAvailablePurchases failed", e);
-    return false;
+    return null;
   }
 }
 
@@ -89,6 +93,12 @@ export async function isEntitledFromStore(): Promise<boolean> {
  */
 export async function refreshEntitlement(): Promise<boolean> {
   const store = await isEntitledFromStore();
+  if (store === null) {
+    // Store unreachable (offline, App Store hiccup): keep the cached
+    // entitlement. Never revoke access on a failed check — only on a
+    // successful check that reports no active purchases.
+    return getHasPaid() || getPromoUnlocked();
+  }
   const entitled = store || getPromoUnlocked();
   setHasPaid(entitled);
   return entitled;

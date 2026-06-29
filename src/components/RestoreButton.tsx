@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Alert } from "react-native";
-import { setHasPaid } from "../utils/mmkvStorage";
-import { ensureIapConnection, isEntitledFromStore } from "../utils/iap";
+import { refreshEntitlement } from "../utils/iap";
 import { Button, ButtonText } from "./ui/button";
 import { Spinner } from "./ui/Spinner";
 
@@ -11,14 +10,13 @@ export default function RestoreButton() {
   const handleRestore = async () => {
     setLoading(true);
     try {
-      await ensureIapConnection();
-      // Re-check the store for an active subscription OR a honored legacy
-      // one-time purchase. Same derivation as the launch/focus refresh.
-      const entitled = await isEntitledFromStore();
+      // Re-derive entitlement the same way launch/focus does: an active
+      // subscription OR a honored legacy one-time purchase OR a promo unlock.
+      // Offline-safe — a failed store check keeps existing access rather than
+      // locking the user out.
+      const entitled = await refreshEntitlement();
 
       if (entitled) {
-        // Update local storage to reflect premium status
-        await setHasPaid(true);
         Alert.alert("Restored", "Your premium access has been restored.");
       } else {
         Alert.alert(
