@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Alert, Platform } from "react-native";
+import * as Linking from "expo-linking";
 import {
   Modal,
   ModalBackdrop,
@@ -13,6 +14,7 @@ import { Button, ButtonText } from "./ui/button";
 import { Input, InputField } from "./ui/input";
 import BuyButton from "./BuyButton";
 import { setHasPaid, setPromoUnlocked } from "../utils/mmkvStorage";
+import { APP_URLS } from "../config/app.config";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -37,6 +39,10 @@ export default function PaywallModal({
   // Default code validator (for demo, accepts 'GRATITUDE')
   const defaultValidator = async (input: string) =>
     input.trim().toUpperCase() === "GRATITUDE";
+
+  // Open an external https URL (Privacy Policy / Terms).
+  const openUrl = (url: string) =>
+    Linking.openURL(url).catch(() => Alert.alert("Couldn't open link", url));
 
   function handleCodeSubmit() {
     setCodeLoading(true);
@@ -141,6 +147,36 @@ export default function PaywallModal({
               Have a code?
             </Text>
           )}
+
+          {/* Apple 3.1.2 fine print + functional legal links (price/period shown on the button) */}
+          <Text
+            className="text-gray-400 text-xs text-center mt-3"
+            style={{ fontFamily: "SpaceMonoRegular" }}
+          >
+            Auto-renews until cancelled. Cancel anytime in App Store settings.
+          </Text>
+          <View className="flex-row justify-center mt-1">
+            <Text
+              className="text-gray-400 text-xs underline"
+              style={{ fontFamily: "SpaceMonoRegular" }}
+              onPress={() => openUrl(APP_URLS.privacyPolicy)}
+            >
+              Privacy Policy
+            </Text>
+            <Text
+              className="text-gray-400 text-xs mx-2"
+              style={{ fontFamily: "SpaceMonoRegular" }}
+            >
+              ·
+            </Text>
+            <Text
+              className="text-gray-400 text-xs underline"
+              style={{ fontFamily: "SpaceMonoRegular" }}
+              onPress={() => openUrl(APP_URLS.termsOfUse)}
+            >
+              Terms of Use
+            </Text>
+          </View>
         </ModalFooter>
         <ModalCloseButton onPress={onClose} />
       </ModalContent>
