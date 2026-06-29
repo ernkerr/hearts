@@ -134,18 +134,16 @@ export default function SettingsScreen() {
             <RestoreButton />
 
             {/* Save */}
-            <View className="flex-row mt-2 mb-28">
-              <Button
-                size="lg"
-                onPress={handleSave}
-                className="flex-1"
-                style={{
-                  boxShadow: "4px 4px 0px #000",
-                }}
-              >
-                <ButtonText className="text-white">Save</ButtonText>
-              </Button>
-            </View>
+            <Button
+              size="2xl"
+              onPress={handleSave}
+              className="w-full mt-8 mb-28"
+              style={{
+                boxShadow: "4px 4px 0px #000",
+              }}
+            >
+              <ButtonText className="text-white">Save</ButtonText>
+            </Button>
 
             {/* Button to clear AsyncStorage */}
             <Button

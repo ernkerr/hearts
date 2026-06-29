@@ -38,9 +38,9 @@ export default function RestoreButton() {
   return (
     <Button
       onPress={handleRestore}
-      size="lg"
+      size="2xl"
       action="secondary"
-      className="flex-1 mt-2"
+      className="w-full mt-8"
       style={{ boxShadow: "4px 4px 0px #000" }}
       disabled={loading}
     >
