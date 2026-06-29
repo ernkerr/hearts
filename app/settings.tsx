@@ -19,10 +19,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { Box } from "@/src/components/ui/box";
 
-import * as RNIap from "react-native-iap";
 import RestoreButton from "@/src/components/RestoreButton";
-
-const validProductId = "hearts_premium_ios";
 
 // This screen lets the user view and change their name
 export default function SettingsScreen() {
