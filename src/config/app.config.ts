@@ -7,11 +7,9 @@
  */
 
 export const APP_URLS = {
-  // TODO: replace with the Hearts Score Tracker privacy policy URL before
-  // submitting. This MUST be the policy for THIS app (do not reuse another
-  // app's link) or Apple will reject the build. Generate one (e.g. at
-  // freeprivacypolicy.com) and paste the live URL here.
-  privacyPolicy: "https://www.freeprivacypolicy.com/live/REPLACE-WITH-HEARTS-PRIVACY-POLICY",
+  // Hearts Score Tracker privacy policy.
+  privacyPolicy:
+    "https://www.freeprivacypolicy.com/live/4ab3456d-8f9d-4b97-8ae2-a6811aecd065",
   // Apple's standard EULA — fine to reuse unless you ship a custom Terms page.
   termsOfUse: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
 } as const;
