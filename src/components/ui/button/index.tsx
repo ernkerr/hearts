@@ -64,6 +64,7 @@ const buttonStyle = tva({
       md: "px-5 h-10",
       lg: "px-6 h-11",
       xl: "px-7 h-12",
+      "2xl": "px-8 h-16",
     },
   },
   compoundVariants: [
@@ -143,6 +144,7 @@ const buttonTextStyle = tva({
       md: "text-base",
       lg: "text-lg",
       xl: "text-xl",
+      "2xl": "text-xl",
     },
   },
   parentCompoundVariants: [
@@ -212,6 +214,7 @@ const buttonIconStyle = tva({
       md: "h-[18px] w-[18px]",
       lg: "h-[18px] w-[18px]",
       xl: "h-5 w-5",
+      "2xl": "h-5 w-5",
     },
     action: {
       primary:
