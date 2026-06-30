@@ -13,6 +13,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "org.cybergoose.heartsscoretracker",
       "buildNumber": "2",
+      "appStoreUrl": "https://apps.apple.com/app/hearts-score-tracker/idREPLACE_WITH_APP_STORE_ID",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -22,6 +23,7 @@
     },
     "android": {
       "package": "org.cybergoose.heartsscoretracker",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=org.cybergoose.heartsscoretracker",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF"
       }

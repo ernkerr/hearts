@@ -6,7 +6,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
+import Constants from "expo-constants";
 import { Button, ButtonText } from "../src/components/ui/button";
 import { Input, InputField } from "../src/components/ui/input";
 import {
@@ -40,6 +42,21 @@ export default function SettingsScreen() {
     setUserName(name.trim() || "You");
     setTargetScore(targetScore);
     router.back();
+  }
+
+  // Explicit "Rate" button → open the App Store / Play Store listing directly.
+  // (Apple's native StoreReview prompt is reserved for natural moments like
+  // finishing a game, not button taps.)
+  function handleRate() {
+    const url =
+      Platform.OS === "ios"
+        ? Constants.expoConfig?.ios?.appStoreUrl
+        : Constants.expoConfig?.android?.playStoreUrl;
+    if (url) {
+      Linking.openURL(url).catch(() =>
+        Alert.alert("Couldn't open the store", "Please try again later.")
+      );
+    }
   }
 
   // Handler for clearing AsyncStorage
@@ -132,6 +149,18 @@ export default function SettingsScreen() {
 
             {/* Restore purchase */}
             <RestoreButton />
+
+            {/* Rate the app */}
+            <Button
+              size="2xl"
+              onPress={handleRate}
+              className="w-full mt-8"
+              style={{
+                boxShadow: "4px 4px 0px #000",
+              }}
+            >
+              <ButtonText className="text-white">Rate the app</ButtonText>
+            </Button>
 
             {/* Save */}
             <Button
