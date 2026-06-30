@@ -1,4 +1,4 @@
-package org.cybergoose.ginscoretracker
+package org.cybergoose.heartsscoretracker
 
 import android.app.Application
 import android.content.res.Configuration

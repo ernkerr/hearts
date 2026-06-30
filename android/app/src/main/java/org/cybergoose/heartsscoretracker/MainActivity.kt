@@ -1,4 +1,4 @@
-package org.cybergoose.ginscoretracker
+package org.cybergoose.heartsscoretracker
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
