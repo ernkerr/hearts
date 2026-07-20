@@ -43,7 +43,8 @@
             "store": "play"
           }
         }
-      ]
+      ],
+      "expo-router"
     ],
     "icon": "./assets/images/icon.png",
     "owner": "ernkerr",

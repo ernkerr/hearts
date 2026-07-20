@@ -127,10 +127,15 @@ const ModalBackdrop = React.forwardRef<
   IModalBackdropProps
 >(function ModalBackdrop({ className, ...props }, ref) {
   return (
+    // NOTE: `initial` is set to the visible end-state (not opacity 0). The
+    // @legendapp/motion enter animation does not run on RN 0.81 / Reanimated 4
+    // / New Architecture, which left modals stuck invisible at their initial
+    // opacity. Starting at the final state guarantees modals are visible with
+    // or without the animation. Trade-off: no fade-in.
     <UIModal.Backdrop
       ref={ref}
       initial={{
-        opacity: 0,
+        opacity: 0.5,
       }}
       animate={{
         opacity: 0.5,
@@ -165,8 +170,8 @@ const ModalContent = React.forwardRef<
     <UIModal.Content
       ref={ref}
       initial={{
-        opacity: 0,
-        scale: 0.9,
+        opacity: 1,
+        scale: 1,
       }}
       animate={{
         opacity: 1,
