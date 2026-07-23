@@ -97,7 +97,7 @@ export default function BuyButton({ onSuccess }: { onSuccess?: () => void }) {
 
   // iOS Subscription exposes localizedPrice; fall back to a sensible label.
   const price = (subscription as any)?.localizedPrice as string | undefined;
-  const label = price ? `Subscribe - ${price}/year` : "Subscribe - $2.99/year";
+  const label = price ? `Subscribe - ${price}/year` : "Subscribe - $4.99/year";
 
   return (
     <Button

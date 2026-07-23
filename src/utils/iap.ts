@@ -1,7 +1,7 @@
 /**
  * In-app purchase helpers for the auto-renewable subscription.
  *
- * Migration note (one-time purchase -> $2.99/year subscription):
+ * Migration note (one-time purchase -> $4.99/year subscription):
  * - Hearts originally shipped a ONE-TIME non-consumable unlock
  *   (`hearts_premium_ios` / `hearts_premium_android`). Those buyers must KEEP
  *   lifetime access. They are honored via `LEGACY_PRODUCT_IDS`.
@@ -29,7 +29,7 @@ import { setHasPaid, getHasPaid, getPromoUnlocked } from "./mmkvStorage";
 
 export const IAP_CONFIG = {
   // Auto-renewable subscription product IDs (must match App Store Connect /
-  // Google Play Console). $2.99 / year. Same id used on both platforms.
+  // Google Play Console). $4.99 / year. Same id used on both platforms.
   products: {
     ios: "hearts_premium_yearly",
     android: "hearts_premium_yearly",

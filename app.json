@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.cybergoose.heartsscoretracker",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "appStoreUrl": "https://apps.apple.com/app/hearts-score-tracker/id6755978632",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
