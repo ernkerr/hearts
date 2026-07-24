@@ -12,6 +12,7 @@ import {
 } from "react-native-iap";
 import { setHasPaid } from "../utils/mmkvStorage";
 import { ensureIapConnection, SUBSCRIPTION_SKU } from "../utils/iap";
+import { SUBSCRIPTION } from "../config/app.config";
 import { Button, ButtonText } from "./ui/button";
 import { Spinner } from "./ui/Spinner";
 
@@ -97,21 +98,30 @@ export default function BuyButton({ onSuccess }: { onSuccess?: () => void }) {
 
   // iOS Subscription exposes localizedPrice; fall back to a sensible label.
   const price = (subscription as any)?.localizedPrice as string | undefined;
-  const label = price ? `Subscribe - ${price}/year` : "Subscribe - $4.99/year";
+  const label = price
+    ? `Subscribe - ${price}/${SUBSCRIPTION.period}`
+    : `Subscribe - ${SUBSCRIPTION.priceWithPeriod}`;
 
   return (
     <Button
       onPress={handleBuy}
-      size="md"
+      size="xl"
       action="primary"
-      className="w-full"
+      className="w-full h-14"
       style={{ boxShadow: "4px 4px 0px #000" }}
       disabled={loading}
     >
       {loading ? (
         <Spinner />
       ) : (
-        <ButtonText className="text-white">{label}</ButtonText>
+        <ButtonText
+          className="text-white"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ fontFamily: "Card", fontSize: 14 }}
+        >
+          {label}
+        </ButtonText>
       )}
     </Button>
   );

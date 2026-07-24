@@ -81,29 +81,6 @@ export function getAllPlayerTotals(
 }
 
 /**
- * Checks if a new round can be added, enforcing the free version's score limit (paywall logic).
- *
- * @param rounds - Array of round objects
- * @param players - Array of players in the game
- * @param hasPaid - Whether the user has paid for the app
- * @param maxFreeScore - The maximum total score allowed for free users (default: 100)
- * @returns true if the round can be added, false if any player would exceed the free limit
- */
-export function canAddRound(
-  rounds: Round[],
-  players: Player[],
-  hasPaid: boolean,
-  maxFreeScore = 100
-): boolean {
-  if (hasPaid) return true;
-
-  const totals = getAllPlayerTotals(rounds, players);
-
-  // Check if any player has exceeded the free limit
-  return Object.values(totals).every((score) => score <= maxFreeScore);
-}
-
-/**
  * Apply "Shoot the Moon" bonus scoring.
  * The shooter gets 0 points for the round, all other players get 26 points.
  *

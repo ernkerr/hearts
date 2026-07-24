@@ -182,7 +182,7 @@ export default function GamesScreen() {
           <Button
             size="xl"
             onPress={handleStartNewGame}
-            className="border-2 border-black rounded-xl"
+            className="border-2 border-black rounded-xl h-16"
             style={{ boxShadow: "4px 4px 0px #000" }}
           >
             <ButtonText style={{ fontFamily: "Card", fontSize: 18 }}>

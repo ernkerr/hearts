@@ -1,30 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { useLocalSearchParams, Stack } from "expo-router";
-import { Pressable, ScrollView, View } from "react-native";
+import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { calculateWinner, getAllPlayerTotals } from "../../src/utils/gameLogic";
 import {
   getGameById,
   updateGame,
+  deleteGame,
+  incrementCompletedGames,
+  shouldAskForReview,
+  recordReviewAsk,
   type Game,
   type Round,
 } from "../../src/utils/mmkvStorage";
 
 //ui
 import LottieView from "lottie-react-native";
-import { Crown, Pencil } from "lucide-react-native";
+import { Crown, Pencil, Trash2 } from "lucide-react-native";
 import { Box } from "@/src/components/ui/box";
 import { Text } from "@/src/components/ui/text";
 import { Button, ButtonText } from "../../src/components/ui/button";
 import { Avatar, AvatarFallbackText } from "../../src/components/ui/avatar";
 import { MultiPlayerScoreModal } from "../../src/components/MultiPlayerScoreModal";
+import RateModal from "../../src/components/RateModal";
 
 // Game detail screen showing scoreboard and rounds
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [game, setGame] = useState<Game | null>(null);
   const [scoreModalVisible, setScoreModalVisible] = useState(false);
   const [editRoundIndex, setEditRoundIndex] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showRateModal, setShowRateModal] = useState(false);
 
   // Load game data
   useEffect(() => {
@@ -90,6 +97,20 @@ export default function GameDetailScreen() {
     if (winnerId && newStatus === "completed") {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
+
+      // Ask for an App Store rating after the celebration settles — a finished
+      // game is the most positive moment to catch a happy user. Cadence and
+      // caps live in storage (1st game, every 3rd after a decline, every
+      // 10th after a "Rate" tap, ≤3/year); the ask is recorded only when the
+      // modal actually shows, so a prompt missed because the app closed comes
+      // back at the next milestone.
+      const completedGames = incrementCompletedGames();
+      if (shouldAskForReview(completedGames)) {
+        setTimeout(() => {
+          recordReviewAsk(completedGames);
+          setShowRateModal(true);
+        }, 3500);
+      }
     }
   }
 
@@ -101,6 +122,21 @@ export default function GameDetailScreen() {
   function handleEditRound(index: number) {
     setEditRoundIndex(index);
     setScoreModalVisible(true);
+  }
+
+  function handleDeleteGame() {
+    if (!game) return;
+    Alert.alert("Delete Game", "Are you sure you want to delete this game?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleteGame(game.id);
+          router.back();
+        },
+      },
+    ]);
   }
 
   if (!game) {
@@ -126,6 +162,16 @@ export default function GameDetailScreen() {
         options={{
           title: "Scoreboard",
           headerTitleStyle: { fontFamily: "Card" },
+          headerRight: () => (
+            <Pressable
+              onPress={handleDeleteGame}
+              accessibilityLabel="Delete game"
+              hitSlop={10}
+              style={{ marginRight: 16 }}
+            >
+              <Trash2 size={22} color="#dc2626" />
+            </Pressable>
+          ),
         }}
       />
 
@@ -141,6 +187,11 @@ export default function GameDetailScreen() {
         editBonusType={editRound?.bonusType}
         editBonusPlayerId={editRound?.bonusPlayerId}
         editRoundIndex={editRoundIndex}
+      />
+
+      <RateModal
+        isOpen={showRateModal}
+        onClose={() => setShowRateModal(false)}
       />
 
       <>
@@ -334,7 +385,7 @@ export default function GameDetailScreen() {
             <Button
               size="xl"
               onPress={handleAddRound}
-              className="rounded-xl mb-4"
+              className="rounded-xl mb-4 h-16"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText style={{ fontFamily: "Card", fontSize: 18 }}>

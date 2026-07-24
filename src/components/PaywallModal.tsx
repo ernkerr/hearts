@@ -117,25 +117,35 @@ export default function PaywallModal({
                 </Text>
               ) : null}
               <Button
-                // size="md"
-                // action="primary"
+                size="xl"
                 onPress={handleCodeSubmit}
-                className="my-4 "
+                className="my-4 h-12"
                 style={{ boxShadow: "4px 4px 0px #000" }}
               >
-                <ButtonText className="text-white text-center">
+                <ButtonText
+                  className="text-white text-center"
+                  style={{ fontFamily: "Card" }}
+                >
                   Redeem Code
                 </ButtonText>
               </Button>
             </View>
           ) : null}
           <Button
+            size="xl"
             action="secondary"
             onPress={onClose}
-            className="w-full my-4"
+            className="w-full my-4 h-14"
             style={{ boxShadow: "4px 4px 0px #000" }}
           >
-            <ButtonText className="text-black">Cancel</ButtonText>
+            <ButtonText
+              className="text-black"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={{ fontFamily: "Card", fontSize: 14 }}
+            >
+              Cancel
+            </ButtonText>
           </Button>
           {/* Small pressable for code input, only on Android */}
           {Platform.OS === "android" && !showCodeInput && (

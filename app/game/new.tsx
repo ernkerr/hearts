@@ -213,7 +213,7 @@ export default function NewGameScreen() {
             <Button
               size="xl"
               onPress={() => router.back()}
-              className="flex-1 bg-white border-2 border-black rounded-xl"
+              className="flex-1 bg-white border-2 border-black rounded-xl h-16"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText
@@ -225,7 +225,7 @@ export default function NewGameScreen() {
             <Button
               size="xl"
               onPress={handleCreateGame}
-              className="flex-1  border-2 border-black rounded-xl"
+              className="flex-1  border-2 border-black rounded-xl h-16"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
               <ButtonText style={{ fontFamily: "Card", fontSize: 16 }}>

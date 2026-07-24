@@ -127,6 +127,74 @@ export function setPromoUnlocked(val: boolean) {
   storage.set("promoUnlocked", val);
 }
 
+// --- Rate prompt ---
+// Cadence for the soft-ask review prompt: ask at the 1st completed game,
+// re-ask decliners every 3rd completed game after the last ask, and cap at
+// 3 asks per rolling year (mirrors Apple's native-prompt limit). Tapping
+// "Rate" isn't a permanent opt-out — Apple gives no signal whether a review
+// was actually left (they may have gotten distracted) — it just backs the
+// cadence off to every 10th game.
+
+const RATE_ASK_EVERY_N_GAMES = 3;
+const RATE_ASK_AFTER_RATE_EVERY_N_GAMES = 10;
+const RATE_MAX_ASKS_PER_YEAR = 3;
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+/** Whether the user has tapped "Rate" at least once (backs off the cadence). */
+export function getRateRated(): boolean {
+  return storage.getBoolean("rateRated") ?? false;
+}
+
+export function setRateRated(val: boolean) {
+  storage.set("rateRated", val);
+}
+
+/** Timestamps of past soft-asks, pruned to the last rolling year. */
+function getRateAskDates(): number[] {
+  const data = storage.getString("rateAskDates");
+  const dates: number[] = data ? JSON.parse(data) : [];
+  const cutoff = Date.now() - ONE_YEAR_MS;
+  return dates.filter((t) => t >= cutoff);
+}
+
+/**
+ * Bumps the completed-games counter (call once per game completion) and
+ * returns the new total.
+ */
+export function incrementCompletedGames(): number {
+  const count = (storage.getNumber("rateCompletedGames") ?? 0) + 1;
+  storage.set("rateCompletedGames", count);
+  return count;
+}
+
+/**
+ * Whether the soft-ask should be shown for the given completed-games total:
+ * due by game cadence (1st game, then every 3rd since the last ask — or
+ * every 10th once they've tapped "Rate") and under the yearly ask cap.
+ */
+export function shouldAskForReview(completedGames: number): boolean {
+  if (getRateAskDates().length >= RATE_MAX_ASKS_PER_YEAR) return false;
+  const lastAskAt = storage.getNumber("rateLastAskGameCount") ?? 0;
+  if (lastAskAt === 0) return completedGames >= 1;
+  const cadence = getRateRated()
+    ? RATE_ASK_AFTER_RATE_EVERY_N_GAMES
+    : RATE_ASK_EVERY_N_GAMES;
+  return completedGames - lastAskAt >= cadence;
+}
+
+/**
+ * Records that the soft-ask was actually shown. Call when the modal opens —
+ * not when it's scheduled — so a missed prompt (app killed, screen popped)
+ * comes back at the next milestone instead of being lost.
+ */
+export function recordReviewAsk(completedGames: number) {
+  storage.set("rateLastAskGameCount", completedGames);
+  storage.set(
+    "rateAskDates",
+    JSON.stringify([...getRateAskDates(), Date.now()])
+  );
+}
+
 // --- User Name ---
 /**
  * Retrieves the user's name from MMKV storage.

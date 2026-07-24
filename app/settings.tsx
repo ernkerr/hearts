@@ -22,6 +22,7 @@ import { Stack, useRouter } from "expo-router";
 import { Box } from "@/src/components/ui/box";
 
 import RestoreButton from "@/src/components/RestoreButton";
+import { APP_URLS } from "@/src/config/app.config";
 
 // This screen lets the user view and change their name
 export default function SettingsScreen() {
@@ -150,6 +151,27 @@ export default function SettingsScreen() {
             {/* Restore purchase */}
             <RestoreButton />
 
+            {/* Legal links (App Store Guideline 3.1.2 — reachable from the binary) */}
+            <View className="flex-row justify-center mt-4">
+              <Text
+                className="text-[#26ABFF] underline"
+                style={{ fontFamily: "SpaceMonoRegular" }}
+                onPress={() => Linking.openURL(APP_URLS.privacyPolicy)}
+              >
+                Privacy Policy
+              </Text>
+              <Text className="mx-2" style={{ fontFamily: "SpaceMonoRegular" }}>
+                ·
+              </Text>
+              <Text
+                className="text-[#26ABFF] underline"
+                style={{ fontFamily: "SpaceMonoRegular" }}
+                onPress={() => Linking.openURL(APP_URLS.termsOfUse)}
+              >
+                Terms of Use
+              </Text>
+            </View>
+
             {/* Rate the app */}
             <Button
               size="2xl"
@@ -159,7 +181,12 @@ export default function SettingsScreen() {
                 boxShadow: "4px 4px 0px #000",
               }}
             >
-              <ButtonText className="text-white">Rate the app</ButtonText>
+              <ButtonText
+                className="text-white"
+                style={{ fontFamily: "Card", fontSize: 18 }}
+              >
+                Rate the app
+              </ButtonText>
             </Button>
 
             {/* Save */}
@@ -171,21 +198,28 @@ export default function SettingsScreen() {
                 boxShadow: "4px 4px 0px #000",
               }}
             >
-              <ButtonText className="text-white">Save</ButtonText>
+              <ButtonText
+                className="text-white"
+                style={{ fontFamily: "Card", fontSize: 18 }}
+              >
+                Save
+              </ButtonText>
             </Button>
 
             {/* Button to clear AsyncStorage */}
             <Button
-              size="sm"
+              size="lg"
               onPress={handleClearStorage}
               // TODO: Add disabled state when paywall is implemented
               // disabled={!hasPaid}
-              className="mt-[95%] mb-16 bg-white w-[50%] ml-[25%] "
+              className="mt-[95%] mb-16 bg-white border-2 border-red-600 w-[50%] ml-[25%] "
               style={{
                 boxShadow: "4px 4px 0px #000",
               }}
             >
-              <ButtonText className="text-black">Reset App</ButtonText>
+              <ButtonText style={{ fontFamily: "Card", color: "#dc2626" }}>
+                Reset App
+              </ButtonText>
             </Button>
           </View>
         </ScrollView>
