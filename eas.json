@@ -16,7 +16,9 @@
     "production": {
       "autoIncrement": true,
       "node": "22.11.0",
-      "ios": {},
+      "ios": {
+        "image": "latest"
+      },
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
