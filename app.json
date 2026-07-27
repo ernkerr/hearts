@@ -3,7 +3,7 @@
     "name": "Hearts Score Tracker",
     "slug": "hearts-score-tracker",
     "scheme": "hearts-score-tracker",
-    "version": "1.1.1",
+    "version": "1.0.3",
     "splash": {
       "backgroundColor": "#000000",
       "resizeMode": "contain"
